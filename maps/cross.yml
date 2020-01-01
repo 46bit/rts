@@ -22,37 +22,37 @@ players:
 generators:
   - x: 75
     y: 300
-    capacity: 0.5
+    capacity: 1.5
   - x: 165
     y: 300
-    capacity: 0.5
+    capacity: 1.5
   - x: 255
     y: 300
-    capacity: 0.5
+    capacity: 1.5
   - x: 345
     y: 300
-    capacity: 0.5
+    capacity: 1.5
   - x: 435
     y: 300
-    capacity: 0.5
+    capacity: 1.5
   - x: 525
     y: 300
-    capacity: 0.5
+    capacity: 1.5
   - x: 300
     y: 75
-    capacity: 0.5
+    capacity: 1.5
   - x: 300
     y: 165
-    capacity: 0.5
+    capacity: 1.5
   - x: 300
     y: 255
-    capacity: 0.5
+    capacity: 1.5
   - x: 300
     y: 345
-    capacity: 0.5
+    capacity: 1.5
   - x: 300
     y: 435
-    capacity: 0.5
+    capacity: 1.5
   - x: 300
     y: 525
-    capacity: 0.5
+    capacity: 1.5
