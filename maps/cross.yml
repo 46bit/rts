@@ -28,10 +28,10 @@ generators:
     capacity: 1.5
   - x: 255
     y: 300
-    capacity: 1.5
+    capacity: 3
   - x: 345
     y: 300
-    capacity: 1.5
+    capacity: 3
   - x: 435
     y: 300
     capacity: 1.5
@@ -46,10 +46,10 @@ generators:
     capacity: 1.5
   - x: 300
     y: 255
-    capacity: 1.5
+    capacity: 3
   - x: 300
     y: 345
-    capacity: 1.5
+    capacity: 3
   - x: 300
     y: 435
     capacity: 1.5
