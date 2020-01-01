@@ -17,6 +17,14 @@ class Game
     end
 
     players = config["players"].map do |p|
+      control = case p["control"]
+      when "guard_nearest_ai"
+        GuardNearestAI.new
+      when "attack_nearest_ai"
+        AttackNearestAI.new
+      else
+        raise "no control specified for player with color #{p["color"]}"
+      end
       PlayerRenderer.new(
         p["color"],
         FactoryRenderer.new(
@@ -26,6 +34,7 @@ class Game
           scale_factor: scale_factor,
           velocity_scale_factor: velocity_scale_factor,
         ),
+        control,
         unit_cap: config["unit_cap"],
       )
     end

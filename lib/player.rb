@@ -3,12 +3,12 @@ require_relative './player_ai'
 class Player
   attr_reader :color, :factory, :unit_cap, :base_generation_capacity, :control, :vehicles
 
-  def initialize(color, factory, unit_cap: nil, base_generation_capacity: 1.0, control: PlayerAI.new)
+  def initialize(color, factory, control, unit_cap: nil, base_generation_capacity: 1.0)
     @color = color
     @factory = factory
+    @control = control
     @unit_cap = unit_cap
     @base_generation_capacity = base_generation_capacity
-    @control = control
     @vehicles = []
   end
 
