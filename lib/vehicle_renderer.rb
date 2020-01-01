@@ -23,7 +23,7 @@ class VehicleRenderer < Vehicle
       y2: @position[1] * @scale_factor + v[1],
       width: 3 * @scale_factor, # FIXME: Base this on @scale_factor
       color: 'black',
-      z: 3,
+      z: 2,
     )
   end
 
