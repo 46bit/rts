@@ -63,6 +63,8 @@ class Game
       player.tick(@generators, @players - [player])
     end
     remove_killed_vehicles
+
+    puts players.map { |p| [p.color, p.score] }.inspect
   end
 
 protected

@@ -1,7 +1,7 @@
 require_relative './player_ai'
 
 class Player
-  attr_reader :color, :factory, :unit_cap, :base_generation_capacity, :control, :vehicles
+  attr_reader :color, :factory, :control, :unit_cap, :base_generation_capacity, :vehicles, :score
 
   def initialize(color, factory, control, unit_cap: nil, base_generation_capacity: 1.0)
     @color = color
@@ -10,6 +10,7 @@ class Player
     @unit_cap = unit_cap
     @base_generation_capacity = base_generation_capacity
     @vehicles = []
+    @score = 0
   end
 
   def tick(generators, other_players)
@@ -22,6 +23,7 @@ class Player
     unless vehicle.nil?
       vehicle.color = @color
       @vehicles << vehicle
+      @score += 1
     end
 
     @control.tick(generators, self, other_players)
