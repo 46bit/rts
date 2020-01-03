@@ -5,7 +5,7 @@ require_relative './utils'
 class Vehicle
   attr_reader :physics, :scale_factor, :velocity_scale_factor
   attr_reader :position, :direction, :velocity, :angular_velocity
-  attr_reader :dead
+  attr_reader :dead, :circle, :line
 
   def initialize(position: Vector[0, 0], direction: 0.0, physics: DEFAULT_VEHICLE_PHYSICS, scale_factor: 1.0, velocity_scale_factor: 1.0)
     @position = position
@@ -16,10 +16,39 @@ class Vehicle
     @velocity = 0.0
     @angular_velocity = 0.0
     @dead = false
+
+    @circle = Circle.new(
+      x: (@position[0] - 2.5) * @scale_factor,
+      y: (@position[1] - 2.5) * @scale_factor,
+      radius: @scale_factor * 5,
+      color: 'white',
+      segments: 20,
+      z: 2,
+    )
+    v = vector_from_magnitude_and_direction(@scale_factor * 5.0, @direction)
+    @line = Line.new(
+      x1: @position[0] * @scale_factor,
+      y1: @position[1] * @scale_factor,
+      x2: @position[0] * @scale_factor + v[0],
+      y2: @position[1] * @scale_factor + v[1],
+      width: 3 * @scale_factor, # FIXME: Base this on @scale_factor
+      color: 'black',
+      z: 2,
+    )
   end
 
   def kill
     @dead = true
+    @circle.remove
+    @line.remove
+  end
+
+  def color
+    @circle.color
+  end
+
+  def color=(color)
+    @circle.color = color
   end
 
   def tick(accelerate_mode: "forward")
@@ -45,7 +74,20 @@ class Vehicle
     movement_vector = vector_from_magnitude_and_direction(@velocity * @scale_factor * @velocity_scale_factor, @direction)
     @position += movement_vector
 
+    @circle.x = @position[0] * @scale_factor
+    @circle.y = @position[1] * @scale_factor
+    v = vector_from_magnitude_and_direction(@scale_factor * 5.0, @direction)
+    @line.x1 = @position[0] * @scale_factor
+    @line.y1 = @position[1] * @scale_factor
+    @line.x2 = @position[0] * @scale_factor + v[0]
+    @line.y2 = @position[1] * @scale_factor + v[1]
+
     #puts "direction=#{to_degrees(@direction)} position=#{@position} velocity=#{@velocity} angular_velocity=#{@angular_velocity}"
+  end
+
+  def collided?(other_vehicle)
+    distance = (@position - other_vehicle.position).magnitude
+    distance <= 10.0
   end
 
   def going_south?

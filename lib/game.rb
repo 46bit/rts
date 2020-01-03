@@ -1,7 +1,8 @@
 require 'matrix'
-require_relative './generator_renderer'
-require_relative './factory_renderer'
-require_relative './player_renderer'
+require_relative './generator'
+require_relative './factory'
+require_relative './player'
+require_relative './player_ai'
 
 class Game
   def self.from_config(config, screen_size: 800)
@@ -9,7 +10,7 @@ class Game
     velocity_scale_factor = 0.075
 
     generators = config["generators"].map do |g|
-      GeneratorRenderer.new(
+      Generator.new(
         Vector[g["x"], g["y"]],
         capacity: g["capacity"],
         scale_factor: scale_factor,
@@ -25,9 +26,9 @@ class Game
       else
         raise "no control specified for player with color #{p["color"]}"
       end
-      PlayerRenderer.new(
+      Player.new(
         p["color"],
-        FactoryRenderer.new(
+        Factory.new(
           Vector[p["x"], p["y"]],
           color: p["color"],
           build_time: config["build_time"],
