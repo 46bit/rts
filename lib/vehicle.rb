@@ -90,7 +90,7 @@ class Vehicle
     @line.y2 = @position[1] * @scale_factor + v[1]
   end
 
-  def collided?(other_vehicle)
+  def collided_with_vehicle?(other_vehicle)
     distance = (@position - other_vehicle.position).magnitude
     distance <= 10.0
   end

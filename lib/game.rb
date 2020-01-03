@@ -58,8 +58,9 @@ class Game
   def tick
     capture_generators_and_kill_capturing_vehicles
     remove_killed_vehicles
-    kill_colliding_vehicles
+    kill_colliding_vehicles_and_damage_collided_factories
     remove_killed_vehicles
+    remove_killed_factories
 
     @generators.each(&:tick)
     @players.each do |player|
@@ -81,11 +82,23 @@ protected
     end
   end
 
-  def kill_colliding_vehicles
+  def remove_killed_factories
+    @players.each do |player|
+      player.factories.reject! { |f| f.dead? }
+    end
+  end
+
+  def kill_colliding_vehicles_and_damage_collided_factories
     @players.product(@players).each do |player_1, player_2|
       next if player_1 == player_2
       player_1.vehicles.product(player_2.vehicles).each do |vehicle_1, vehicle_2|
-        vehicle_1.kill if vehicle_1.collided?(vehicle_2)
+        vehicle_1.kill if vehicle_1.collided_with_vehicle?(vehicle_2)
+      end
+      player_1.vehicles.product(player_2.factories).each do |vehicle, factory|
+        if factory.vehicle_collided?(vehicle)
+          vehicle.kill
+          factory.damage :vehicle_collision
+        end
       end
     end
   end
