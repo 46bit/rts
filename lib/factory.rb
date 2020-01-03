@@ -1,15 +1,14 @@
 require_relative './vehicle'
 
 class Factory
-  attr_reader :position, :player, :build_time, :scale_factor, :velocity_scale_factor
+  attr_reader :position, :player, :build_time, :scale_factor
   attr_reader :construction_progress, :outline, :square, :progress_square
 
-  def initialize(position, player, build_time: 10, scale_factor: 1.0, velocity_scale_factor: 1.0)
+  def initialize(position, player, build_time: 10, scale_factor: 1.0)
     @position = position
     @player = player
     @build_time = build_time
     @scale_factor = scale_factor
-    @velocity_scale_factor = velocity_scale_factor
     @construction_progress = nil
 
     @outline = Square.new(
@@ -52,10 +51,8 @@ class Factory
 
     @construction_progress = nil
     return Vehicle.new(
-      position: @position,
-      direction: rand * Math::PI * 2,
+      @position,
       scale_factor: @scale_factor,
-      velocity_scale_factor: @velocity_scale_factor,
     )
   end
 

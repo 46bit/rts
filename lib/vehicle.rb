@@ -3,16 +3,18 @@ require_relative './vehicle_physics'
 require_relative './utils'
 
 class Vehicle
-  attr_reader :physics, :scale_factor, :velocity_scale_factor
+  PHYSICS = DEFAULT_VEHICLE_PHYSICS
+  MOVEMENT_RATE = 0.1
+  TURN_RATE = 4.0/3.0
+
+  attr_reader :scale_factor
   attr_reader :position, :direction, :velocity, :angular_velocity
   attr_reader :dead, :circle, :line
 
-  def initialize(position: Vector[0, 0], direction: 0.0, physics: DEFAULT_VEHICLE_PHYSICS, scale_factor: 1.0, velocity_scale_factor: 1.0)
+  def initialize(position, direction: rand * Math::PI * 2, scale_factor: 1.0)
     @position = position
     @direction = direction
-    @physics = physics
     @scale_factor = scale_factor
-    @velocity_scale_factor = velocity_scale_factor
     @velocity = 0.0
     @angular_velocity = 0.0
     @dead = false
@@ -60,18 +62,18 @@ class Vehicle
     when "forward"
       accelerate
     when "forward_and_left"
-      accelerate(offset: @physics.turning_angle)
+      accelerate(offset: PHYSICS.turning_angle)
     when "forward_and_right"
-      accelerate(offset: -@physics.turning_angle)
+      accelerate(offset: -PHYSICS.turning_angle)
     when ""
     else
       raise "unexpected accelerate mode: #{accelerate_mode}"
     end
 
-    @direction += @angular_velocity * @scale_factor
+    @direction += @angular_velocity * TURN_RATE
     @direction += Math::PI * 2 if @direction < -Math::PI
     @direction -= Math::PI * 2 if @direction > Math::PI
-    movement_vector = vector_from_magnitude_and_direction(@velocity * @scale_factor * @velocity_scale_factor, @direction)
+    movement_vector = vector_from_magnitude_and_direction(@velocity * MOVEMENT_RATE, @direction)
     @position += movement_vector
   end
 
@@ -116,10 +118,10 @@ class Vehicle
 protected
 
   def apply_drag_forces
-    apply_drag_to_velocity @physics.air_resistance(@velocity)
-    apply_drag_to_angular_velocity @physics.air_resistance(@angular_velocity)
+    apply_drag_to_velocity PHYSICS.air_resistance(@velocity)
+    apply_drag_to_angular_velocity PHYSICS.air_resistance(@angular_velocity)
 
-    rolling_resistance_per_unit_velocity = @physics.rolling_resistance / (@velocity + @angular_velocity)
+    rolling_resistance_per_unit_velocity = PHYSICS.rolling_resistance / (@velocity + @angular_velocity)
     rolling_resistance_per_unit_velocity = 0 if rolling_resistance_per_unit_velocity.infinite?
     apply_drag_to_velocity rolling_resistance_per_unit_velocity * @velocity
     apply_drag_to_angular_velocity rolling_resistance_per_unit_velocity * @angular_velocity
@@ -130,22 +132,22 @@ protected
   end
 
   def apply_drag_to_velocity(max_drag_force)
-    drag_force = [max_drag_force.abs, @physics.momentum(@velocity.abs)].min
+    drag_force = [max_drag_force.abs, PHYSICS.momentum(@velocity.abs)].min
     apply_forwards_force(-drag_force * sign_of(@velocity))
   end
 
   def apply_drag_to_angular_velocity(max_drag_force)
-    drag_force = [max_drag_force.abs, @physics.momentum(@angular_velocity.abs)].min
+    drag_force = [max_drag_force.abs, PHYSICS.momentum(@angular_velocity.abs)].min
     apply_angular_force(-drag_force * sign_of(@angular_velocity))
   end
 
   def apply_forwards_force(force)
-    velocity_change = force / @physics.mass
+    velocity_change = force / PHYSICS.mass
     @velocity += velocity_change
   end
 
   def apply_angular_force(force)
-    velocity_change = force / @physics.mass
+    velocity_change = force / PHYSICS.mass
     @angular_velocity += velocity_change
   end
 
@@ -160,7 +162,7 @@ protected
   end
 
   def accelerate(offset: 0.0)
-    acceleration_force_vector = vector_from_magnitude_and_direction(@physics.max_acceleration_force, offset)
+    acceleration_force_vector = vector_from_magnitude_and_direction(PHYSICS.max_acceleration_force, offset)
     apply_angular_force(acceleration_force_vector[0])
     apply_forwards_force(acceleration_force_vector[1])
   end

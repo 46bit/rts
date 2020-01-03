@@ -7,7 +7,6 @@ require_relative './player_ai'
 class Game
   def self.from_config(config, screen_size: 800)
     scale_factor = screen_size.to_f / config["size"]
-    velocity_scale_factor = 0.075
 
     generators = config["generators"].map do |g|
       Generator.new(
@@ -36,7 +35,6 @@ class Game
         player,
         build_time: config["build_time"],
         scale_factor: scale_factor,
-        velocity_scale_factor: velocity_scale_factor,
       )
       player
     end
