@@ -68,6 +68,8 @@ class Game
   end
 
   def tick
+    kill_enemy_things_that_projectiles_collide_with
+    remove_killed_projectiles
     capture_generators_and_kill_capturing_vehicles
     remove_killed_vehicles
     kill_colliding_vehicles_and_damage_collided_factories
@@ -83,6 +85,7 @@ class Game
       player.render unless HEADLESS
     end
     remove_killed_vehicles
+    remove_killed_projectiles
 
     # puts @players.map { |p| [p.color, p.score] }.inspect
     check_for_winner unless @sandbox || @winner
@@ -113,6 +116,7 @@ protected
     return if @winner
     players_with_factories = @players.reject { |p| p.factories.empty? }
     players_with_vehicles = @players.reject { |p| p.vehicles.empty? }
+    # FIXME: Accommodate players with projectiles
     zeros_match = players_with_factories[0] == players_with_vehicles[0]
     @winner = case [players_with_factories.length, players_with_vehicles.length]
     when [1, 0] # Sole living player only has factories
@@ -141,6 +145,37 @@ protected
   def remove_killed_factories
     @players.each do |player|
       player.factories.reject! { |f| f.dead? }
+    end
+  end
+
+  def remove_killed_projectiles
+    @players.each do |player|
+      player.projectiles.reject! { |f| f.dead }
+    end
+  end
+
+  def kill_enemy_things_that_projectiles_collide_with
+    @players.product(@players).each do |player_1, player_2|
+      next if player_1 == player_2
+
+      player_1.projectiles.each do |projectile|
+        # Projectiles can damage multiple things if they collide with them at the same time
+        kill_projectile = false
+        player_2.vehicles.each do |vehicle|
+          if vehicle.collided_with_projectile?(projectile)
+            kill_projectile = true
+            vehicle.kill
+          end
+        end
+        player_2.factories.each do |factory|
+          if factory.collided_with_projectile?(projectile)
+            kill_projectile = true
+            factory.damage :projectile_collision
+          end
+        end
+
+        projectile.kill if kill_projectile
+      end
     end
   end
 

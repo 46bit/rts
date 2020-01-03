@@ -1,7 +1,8 @@
 require_relative './player_ai'
 
 class Player
-  attr_reader :color, :control, :unit_cap, :base_generation_capacity, :factories, :vehicles, :score
+  attr_reader :color, :control, :unit_cap, :base_generation_capacity
+  attr_reader :factories, :vehicles, :projectiles, :score
 
   def initialize(color, control, unit_cap: Float::INFINITY, base_generation_capacity: 1.0)
     @color = color
@@ -10,11 +11,16 @@ class Player
     @base_generation_capacity = base_generation_capacity
     @factories = []
     @vehicles = []
+    @projectiles = []
     @score = 0
   end
 
   def add_factory(factory)
     @factories << factory
+  end
+
+  def add_projectile(projectile)
+    @projectiles << projectile
   end
 
   def update(generators, other_players)
@@ -29,6 +35,8 @@ class Player
       end
     end
 
+    @projectiles.each(&:update)
+
     @control.update(generators, self, other_players)
     @vehicles.reject! { |v| v.dead }
   end
@@ -36,6 +44,7 @@ class Player
   def render
     @factories.each(&:render)
     @vehicles.each(&:render)
+    @projectiles.each(&:render)
 
     oldest_factory = @factories[0]
     if oldest_factory

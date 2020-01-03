@@ -1,4 +1,11 @@
 require 'matrix'
+require_relative './turret'
+
+def update_turret(turret, player, other_players)
+  enemy_vehicles = other_players.map(&:vehicles).flatten
+  projectile = turret.update(enemy_vehicles)
+  player.add_projectile(projectile) unless projectile.nil?
+end
 
 # AI that focuses on seizing the generator closest to each unit. When it has seized all generators
 # its units guard their nearest generators.
@@ -8,6 +15,10 @@ class GuardNearestAI
     targets = generators if targets.empty?
     player.vehicles.each do |vehicle|
       next if vehicle.dead
+      if vehicle.class == Turret && vehicle.deployed
+        update_turret(vehicle, player, other_players)
+        next
+      end
 
       target = targets.min_by { |t| (t.position - vehicle.position).magnitude }
       if target.nil?
@@ -32,6 +43,10 @@ class AttackNearestAI
     targets = generators + player.factories if targets.empty?
     player.vehicles.each do |vehicle|
       next if vehicle.dead
+      if vehicle.class == Turret && vehicle.deployed
+        update_turret(vehicle, player, other_players)
+        next
+      end
 
       target = targets.min_by { |t| (t.position - vehicle.position).magnitude }
       if target.nil?
@@ -89,6 +104,12 @@ class SpamFactoriesAI < GuardNearestAI
 
   def update(generators, player, other_players)
     player.vehicles.each do |vehicle|
+      next if vehicle.dead
+      if vehicle.class == Turret && vehicle.deployed
+        update_turret(vehicle, player, other_players)
+        next
+      end
+
       choose_new_target(generators, player, other_players) if @target.nil?
       if @target.nil?
         if @stalled_time > 35
@@ -98,16 +119,22 @@ class SpamFactoriesAI < GuardNearestAI
         end
       elsif (vehicle.position - @target).magnitude < 10
         if reasonable_target?(@target, generators, player, other_players) && !already_building?(player)
-          vehicle.kill
-          player.add_factory Factory.new(
-            @target.clone,
-            player,
-            scale_factor: player.factories[0].scale_factor,
-            factory_ready: false,
-            health: 20,
-          )
+          if vehicle.class == Turret
+            # FIXME: When deploying a turret the other vehicles follow along. Assign a target to each
+            # turret and then move on?
+            vehicle.deploy
+          else
+            vehicle.kill
+            player.add_factory Factory.new(
+              @target.clone,
+              player,
+              scale_factor: player.factories[0].scale_factor,
+              factory_ready: false,
+              health: 20,
+            )
+          end
         end
-        @target = nil if building_complete?(player)
+        @target = nil if vehicle.class == Turret || building_complete?(player)
       elsif vehicle.turn_left_to_reach?(@target) && rand > 0.2
         vehicle.update(accelerate_mode: "forward_and_left")
       elsif vehicle.turn_right_to_reach?(@target) && rand > 0.2
@@ -130,6 +157,12 @@ class BuildFactoryAtCentreThenAttackAI < AttackNearestAI
     return super unless @target && generators.select { |g| g.owner?(player) }.length > 0
 
     player.vehicles.each do |vehicle|
+      next if vehicle.dead
+      if vehicle.class == Turret && vehicle.deployed
+        update_turret(vehicle, player, other_players)
+        next
+      end
+
       if (vehicle.position - @target).magnitude < 10
         unless player.factories.length == 2
           vehicle.kill
@@ -161,6 +194,10 @@ class KillFactoriesAI
     targets = generators + player.factories if targets.empty?
     player.vehicles.each do |vehicle|
       next if vehicle.dead
+      if vehicle.class == Turret && vehicle.deployed
+        update_turret(vehicle, player, other_players)
+        next
+      end
 
       target = targets.min_by { |t| (t.position - vehicle.position).magnitude }
       if target.nil?

@@ -4,6 +4,7 @@ class Factory
   COST_OF_BUILDING_A_UNIT = 100
   DAMAGING_EVENTS = {
     vehicle_collision: 10,
+    projectile_collision: 5,
   }
 
   attr_reader :position, :player, :health, :full_health
@@ -67,6 +68,11 @@ class Factory
     distance <= 19.0
   end
 
+  def collided_with_projectile?(projectile)
+    distance = (@position - projectile.position).magnitude
+    distance <= 21
+  end
+
   def dead?
     @health.zero?
   end
@@ -103,11 +109,20 @@ class Factory
     return unless @unit_progress >= COST_OF_BUILDING_A_UNIT && can_produce
 
     @unit_progress = nil
-    return Vehicle.new(
-      @position,
-      @player,
-      scale_factor: @scale_factor,
-    )
+    # FIXME: Allow users to choose when to build a turret, and tweak the build cost
+    if rand > 0.5
+      return Turret.new(
+        @position,
+        @player,
+        scale_factor: @scale_factor,
+      )
+    else
+      return Vehicle.new(
+        @position,
+        @player,
+        scale_factor: @scale_factor,
+      )
+    end
   end
 
   def render

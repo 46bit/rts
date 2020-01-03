@@ -90,6 +90,14 @@ class Vehicle
     distance <= 10.0
   end
 
+  def collided_with_projectile?(projectile)
+    distance = (@position - projectile.position).magnitude
+    # FIXME: How about increasing this to give projectiles a bigger area of effect?
+    # Projectiles are weak against factories, and it'd make sense if that's because
+    # they have a big but weaker explosion?
+    distance <= 8
+  end
+
   def going_south?
     @direction.abs < Math::PI / 2
   end
