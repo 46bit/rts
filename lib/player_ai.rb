@@ -108,3 +108,35 @@ class SpamFactoriesAI < GuardNearestAI
     end
   end
 end
+
+class BuildFactoryAtCentreThenAttackAI < AttackNearestAI
+  def initialize(generators)
+    average_generator_x = generators.map(&:position).map { |p| p[0] }.sum.to_f / generators.length
+    average_generator_y = generators.map(&:position).map { |p| p[1] }.sum.to_f / generators.length
+    @target = Vector[average_generator_x, average_generator_y]
+  end
+
+  def update(generators, player, other_players)
+    return super unless @target
+
+    player.vehicles.each do |vehicle|
+      if (vehicle.position - @target).magnitude < 10
+        vehicle.kill
+        player.add_factory Factory.new(
+          @target.clone,
+          player,
+          build_time: player.factories[0].build_time,
+          scale_factor: player.factories[0].scale_factor,
+        )
+        @target = false
+        break
+      elsif vehicle.turn_left_to_reach?(@target) && rand > 0.2
+        vehicle.update(accelerate_mode: "forward_and_left")
+      elsif vehicle.turn_right_to_reach?(@target) && rand > 0.2
+        vehicle.update(accelerate_mode: "forward_and_right")
+      else
+        vehicle.update(accelerate_mode: "forward")
+      end
+    end
+  end
+end

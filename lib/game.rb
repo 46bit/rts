@@ -25,6 +25,8 @@ class Game
         AttackNearestAI.new
       when "spam_factories_ai"
         SpamFactoriesAI.new(world_size)
+      when "build_factory_at_centre_then_attack_ai"
+        BuildFactoryAtCentreThenAttackAI.new(generators)
       else
         raise "no control specified for player with color #{p["color"]}"
       end
