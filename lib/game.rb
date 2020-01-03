@@ -46,15 +46,26 @@ class Game
       player
     end
 
-    return Game.new(screen_size, generators, players)
+    return Game.new(
+      world_size,
+      screen_size,
+      generators,
+      players,
+      sandbox: config.fetch("sandbox", false),
+      scale_factor: scale_factor,
+    )
   end
 
-  attr_reader :screen_size, :generators, :players
+  attr_reader :screen_size, :generators, :players, :sandbox, :winner
 
-  def initialize(screen_size, generators, players)
+  def initialize(world_size, screen_size, generators, players, sandbox: false, scale_factor: 1.0)
+    @world_size = world_size
     @screen_size = screen_size
     @generators = generators
     @players = players
+    @sandbox = sandbox
+    @scale_factor = scale_factor
+    @winner = false
   end
 
   def tick
@@ -73,10 +84,52 @@ class Game
     end
     remove_killed_vehicles
 
-    puts players.map { |p| [p.color, p.score] }.inspect
+    # puts @players.map { |p| [p.color, p.score] }.inspect
+    check_for_winner unless @sandbox || @winner
+    if @winner
+      if @label
+        exit 0 if Time.now - @win_time > 5
+      else
+        @win_time = Time.now
+        puts "#{@winner} wins!"
+        @label = Text.new(
+          "#{@winner} wins!",
+          x: @world_size / 2 * @scale_factor,
+          y: @world_size / 2 * @scale_factor,
+          size: 100 * @scale_factor,
+          color: 'white',
+          z: 10,
+        )
+        @label.x -= @label.width / 2
+        @label.y -= @label.height / 2
+      end
+    end
   end
 
 protected
+
+  def check_for_winner
+    return if @winner
+    players_with_factories = @players.reject { |p| p.factories.empty? }
+    players_with_vehicles = @players.reject { |p| p.vehicles.empty? }
+    zeros_match = players_with_factories[0] == players_with_vehicles[0]
+    @winner = case [players_with_factories.length, players_with_vehicles.length]
+    when [1, 0] # Sole living player only has factories
+      players_with_factories[0].color
+    when [0, 1] # Sole living player only has vehicles
+      players_with_vehicles[0].color
+    when [1, 1]
+      if players_with_factories[0] == players_with_vehicles[0]
+        players_with_vehicles[0].color # Sole living player has factories and vehicles
+      else
+        false # One player has no factories but still has vehicles so could still win
+      end
+    when [0, 0]
+      "nobody"
+    else
+      false
+    end
+  end
 
   def remove_killed_vehicles
     @players.each do |player|
