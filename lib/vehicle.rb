@@ -8,22 +8,24 @@ class Vehicle
   TURN_RATE = 4.0/3.0
 
   attr_reader :scale_factor
-  attr_reader :position, :direction, :velocity, :angular_velocity
+  attr_reader :position, :player, :direction, :velocity, :angular_velocity
   attr_reader :dead, :circle, :line
 
-  def initialize(position, direction: rand * Math::PI * 2, scale_factor: 1.0)
+  def initialize(position, player, direction: rand * Math::PI * 2, scale_factor: 1.0)
     @position = position
+    @player = player
     @direction = direction
     @scale_factor = scale_factor
     @velocity = 0.0
     @angular_velocity = 0.0
     @dead = false
 
+    return if HEADLESS
     @circle = Circle.new(
       x: (@position[0] - 2.5) * @scale_factor,
       y: (@position[1] - 2.5) * @scale_factor,
       radius: @scale_factor * 5,
-      color: 'white',
+      color: @player.color,
       segments: 20,
       z: 2,
     )
@@ -43,14 +45,6 @@ class Vehicle
     @dead = true
     @circle.remove
     @line.remove
-  end
-
-  def color
-    @circle.color
-  end
-
-  def color=(color)
-    @circle.color = color
   end
 
   def update(accelerate_mode: "forward")

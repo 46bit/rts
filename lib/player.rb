@@ -27,7 +27,6 @@ class Player
     @factories.each do |factory|
       vehicle = factory.update(build_capacity_per_factory)
       unless vehicle.nil?
-        vehicle.color = @color
         @vehicles << vehicle
         @score += 1
       end

@@ -89,6 +89,7 @@ class Factory
     @construction_progress = nil
     return Vehicle.new(
       @position,
+      @player,
       scale_factor: @scale_factor,
     )
   end
