@@ -51,7 +51,7 @@ class Vehicle
     @circle.color = color
   end
 
-  def tick(accelerate_mode: "forward")
+  def update(accelerate_mode: "forward")
     return if @dead
 
     apply_drag_forces
@@ -73,16 +73,19 @@ class Vehicle
     @direction -= Math::PI * 2 if @direction > Math::PI
     movement_vector = vector_from_magnitude_and_direction(@velocity * @scale_factor * @velocity_scale_factor, @direction)
     @position += movement_vector
+  end
+
+  def render
+    return if @dead
 
     @circle.x = @position[0] * @scale_factor
     @circle.y = @position[1] * @scale_factor
+
     v = vector_from_magnitude_and_direction(@scale_factor * 5.0, @direction)
     @line.x1 = @position[0] * @scale_factor
     @line.y1 = @position[1] * @scale_factor
     @line.x2 = @position[0] * @scale_factor + v[0]
     @line.y2 = @position[1] * @scale_factor + v[1]
-
-    #puts "direction=#{to_degrees(@direction)} position=#{@position} velocity=#{@velocity} angular_velocity=#{@angular_velocity}"
   end
 
   def collided?(other_vehicle)

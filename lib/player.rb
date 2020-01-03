@@ -17,7 +17,7 @@ class Player
     @factories << factory
   end
 
-  def tick(generators, other_players)
+  def update(generators, other_players)
     build_capacity = build_capacity(generators)
     if !@unit_cap.nil? && @vehicles.length >= @unit_cap
       build_capacity = 0
@@ -25,7 +25,7 @@ class Player
     build_capacity_per_factory = build_capacity.to_f / @factories.length
 
     @factories.each do |factory|
-      vehicle = factory.tick(build_capacity_per_factory)
+      vehicle = factory.update(build_capacity_per_factory)
       unless vehicle.nil?
         vehicle.color = @color
         @vehicles << vehicle
@@ -33,8 +33,13 @@ class Player
       end
     end
 
-    @control.tick(generators, self, other_players)
+    @control.update(generators, self, other_players)
     @vehicles.reject! { |v| v.dead }
+  end
+
+  def render
+    @factories.each(&:render)
+    @vehicles.each(&:render)
   end
 
   def build_capacity(generators)

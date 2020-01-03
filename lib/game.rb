@@ -62,7 +62,8 @@ class Game
     @players.each do |player|
       # FIXME: Reallow control over creating new units?
       player.factories.each(&:construct_new)
-      player.tick(@generators, @players - [player])
+      player.update(@generators, @players - [player])
+      player.render
     end
     remove_killed_vehicles
 

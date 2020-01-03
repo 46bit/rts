@@ -44,26 +44,26 @@ class Factory
     @construction_progress.to_f / @build_time
   end
 
-  def tick(build_capacity)
+  def update(build_capacity)
     return if @construction_progress.nil?
 
     @construction_progress += build_capacity
-    if @construction_progress >= @build_time
-      @construction_progress = nil
-      vehicle = Vehicle.new(
-        position: @position,
-        direction: rand * Math::PI * 2,
-        scale_factor: @scale_factor,
-        velocity_scale_factor: @velocity_scale_factor,
-      )
-    end
+    return unless @construction_progress >= @build_time
 
+    @construction_progress = nil
+    return Vehicle.new(
+      position: @position,
+      direction: rand * Math::PI * 2,
+      scale_factor: @scale_factor,
+      velocity_scale_factor: @velocity_scale_factor,
+    )
+  end
+
+  def render
     if @construction_progress.nil?
       @progress_square.opacity = 0.0
     else
       @progress_square.opacity = 0.1 + 0.9 * progress
     end
-
-    return vehicle
   end
 end
