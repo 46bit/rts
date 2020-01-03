@@ -16,10 +16,11 @@ class Turret < Vehicle
   def deploy
     return if @deployed
     @deployed = true
-    @line.opacity = 0.0 # Create some easy visual difference
     @update_counter = 0
     @velocity = 0.0
     @angular_velocity = 0.0
+    return if HEADLESS
+    @line.opacity = 0.0 # Create some easy visual difference
   end
 
   def update(accelerate_mode)
