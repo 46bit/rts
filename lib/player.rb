@@ -1,16 +1,20 @@
 require_relative './player_ai'
 
 class Player
-  attr_reader :color, :factory, :control, :unit_cap, :base_generation_capacity, :vehicles, :score
+  attr_reader :color, :control, :unit_cap, :base_generation_capacity, :factories, :vehicles, :score
 
-  def initialize(color, factory, control, unit_cap: nil, base_generation_capacity: 1.0)
+  def initialize(color, control, unit_cap: nil, base_generation_capacity: 1.0)
     @color = color
-    @factory = factory
     @control = control
     @unit_cap = unit_cap
     @base_generation_capacity = base_generation_capacity
+    @factories = []
     @vehicles = []
     @score = 0
+  end
+
+  def add_factory(factory)
+    @factories << factory
   end
 
   def tick(generators, other_players)
@@ -18,12 +22,15 @@ class Player
     if !@unit_cap.nil? && @vehicles.length >= @unit_cap
       build_capacity = 0
     end
+    build_capacity_per_factory = build_capacity.to_f / @factories.length
 
-    vehicle = @factory.tick(build_capacity)
-    unless vehicle.nil?
-      vehicle.color = @color
-      @vehicles << vehicle
-      @score += 1
+    @factories.each do |factory|
+      vehicle = factory.tick(build_capacity_per_factory)
+      unless vehicle.nil?
+        vehicle.color = @color
+        @vehicles << vehicle
+        @score += 1
+      end
     end
 
     @control.tick(generators, self, other_players)

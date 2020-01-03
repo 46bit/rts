@@ -26,7 +26,7 @@ end
 class AttackNearestAI
   def tick(generators, player, other_players)
     targets = generators.reject { |g| g.owner?(player) }
-    targets = other_players.map(&:factory) + other_players.map(&:vehicles).flatten if targets.empty?
+    targets = other_players.map(&:factories).flatten + other_players.map(&:vehicles).flatten if targets.empty?
     player.vehicles.each do |vehicle|
       next if vehicle.dead
 

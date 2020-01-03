@@ -26,18 +26,19 @@ class Game
       else
         raise "no control specified for player with color #{p["color"]}"
       end
-      Player.new(
+      player = Player.new(
         p["color"],
-        Factory.new(
-          Vector[p["x"], p["y"]],
-          color: p["color"],
-          build_time: config["build_time"],
-          scale_factor: scale_factor,
-          velocity_scale_factor: velocity_scale_factor,
-        ),
         control,
         unit_cap: config["unit_cap"],
       )
+      player.add_factory Factory.new(
+        Vector[p["x"], p["y"]],
+        color: p["color"],
+        build_time: config["build_time"],
+        scale_factor: scale_factor,
+        velocity_scale_factor: velocity_scale_factor,
+      )
+      player
     end
 
     return Game.new(screen_size, generators, players)
@@ -60,7 +61,7 @@ class Game
     @generators.each(&:tick)
     @players.each do |player|
       # FIXME: Reallow control over creating new units?
-      player.factory.construct_new
+      player.factories.each(&:construct_new)
       player.tick(@generators, @players - [player])
     end
     remove_killed_vehicles
