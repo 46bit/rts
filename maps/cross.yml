@@ -16,7 +16,7 @@ players:
     x: 65
     y: 535
   - color: blue
-    control: guard_nearest_ai
+    control: kill_factories_ai
     x: 535
     y: 535
 generators:

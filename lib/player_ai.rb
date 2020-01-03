@@ -141,3 +141,25 @@ class BuildFactoryAtCentreThenAttackAI < AttackNearestAI
     end
   end
 end
+
+class KillFactoriesAI
+  def update(generators, player, other_players)
+    top_player = other_players.max_by(&:score)
+    targets = top_player.factories if top_player
+    targets = generators + player.factories if targets.empty?
+    player.vehicles.each do |vehicle|
+      next if vehicle.dead
+
+      target = targets.min_by { |t| (t.position - vehicle.position).magnitude }
+      if target.nil?
+        vehicle.update(accelerate_mode: "")
+      elsif vehicle.turn_left_to_reach?(target.position) && rand > 0.2
+        vehicle.update(accelerate_mode: "forward_and_left")
+      elsif vehicle.turn_right_to_reach?(target.position) && rand > 0.2
+        vehicle.update(accelerate_mode: "forward_and_right")
+      else
+        vehicle.update(accelerate_mode: "forward")
+      end
+    end
+  end
+end
