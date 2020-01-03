@@ -33,7 +33,7 @@ class Game
       )
       player.add_factory Factory.new(
         Vector[p["x"], p["y"]],
-        color: p["color"],
+        player,
         build_time: config["build_time"],
         scale_factor: scale_factor,
         velocity_scale_factor: velocity_scale_factor,

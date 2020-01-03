@@ -1,12 +1,12 @@
 require_relative './vehicle'
 
 class Factory
-  attr_reader :position, :color, :build_time, :scale_factor, :velocity_scale_factor
+  attr_reader :position, :player, :build_time, :scale_factor, :velocity_scale_factor
   attr_reader :construction_progress, :outline, :square, :progress_square
 
-  def initialize(position, color: 'white', build_time: 10, scale_factor: 1.0, velocity_scale_factor: 1.0)
+  def initialize(position, player, build_time: 10, scale_factor: 1.0, velocity_scale_factor: 1.0)
     @position = position
-    @color = color
+    @player = player
     @build_time = build_time
     @scale_factor = scale_factor
     @velocity_scale_factor = velocity_scale_factor
@@ -16,7 +16,7 @@ class Factory
       x: (@position[0] - 9.5) * @scale_factor,
       y: (@position[1] - 9.5) * @scale_factor,
       size: @scale_factor * 19,
-      color: color,
+      color: @player.color,
       z: 1,
     )
     @square = Square.new(
@@ -30,7 +30,7 @@ class Factory
       x: (@position[0] - 7.5) * @scale_factor,
       y: (@position[1] - 7.5) * @scale_factor,
       size: @scale_factor * 15,
-      color: color,
+      color: @player.color,
       opacity: 0.0,
       z: 3,
     )
