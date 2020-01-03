@@ -36,6 +36,25 @@ class Player
   def render
     @factories.each(&:render)
     @vehicles.each(&:render)
+
+    oldest_factory = @factories[0]
+    if oldest_factory
+      if @stats_text.nil?
+        @stats_text = Text.new(
+          "",
+          size: 8 * oldest_factory.scale_factor,
+          color: @color,
+          z: 2,
+        )
+      end
+      pretty_build_capacity = @latest_build_capacity == @latest_build_capacity.to_i ? @latest_build_capacity.to_i : @latest_build_capacity
+      @stats_text.text = "#{@vehicles.length}/#{@unit_cap} +#{pretty_build_capacity}"
+      @stats_text.x = (oldest_factory.position[0] - 9.5) * oldest_factory.scale_factor
+      @stats_text.y = (oldest_factory.position[1] + 14) * oldest_factory.scale_factor
+    else
+      @stats_text.remove unless @stats_text.nil?
+      @stats_text = nil
+    end
   end
 
   def build_capacity(generators)
