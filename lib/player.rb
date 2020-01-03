@@ -3,7 +3,7 @@ require_relative './player_ai'
 class Player
   attr_reader :color, :control, :unit_cap, :base_generation_capacity, :factories, :vehicles, :score
 
-  def initialize(color, control, unit_cap: nil, base_generation_capacity: 1.0)
+  def initialize(color, control, unit_cap: Float::INFINITY, base_generation_capacity: 1.0)
     @color = color
     @control = control
     @unit_cap = unit_cap
@@ -18,14 +18,11 @@ class Player
   end
 
   def update(generators, other_players)
-    build_capacity = build_capacity(generators)
-    if !@unit_cap.nil? && @vehicles.length >= @unit_cap
-      build_capacity = 0
-    end
-    build_capacity_per_factory = build_capacity.to_f / @factories.length
+    @latest_build_capacity = build_capacity(generators)
+    build_capacity_per_factory = @latest_build_capacity.to_f / @factories.length
 
     @factories.each do |factory|
-      vehicle = factory.update(build_capacity_per_factory)
+      vehicle = factory.update(build_capacity_per_factory, can_produce: @vehicles.length < @unit_cap)
       unless vehicle.nil?
         @vehicles << vehicle
         @score += 1

@@ -95,12 +95,12 @@ class Factory
     end
   end
 
-  def update(build_capacity)
+  def update(build_capacity, can_produce: true)
     return unless @factory_ready
     return if @unit_progress.nil?
 
     @unit_progress += build_capacity
-    return unless @unit_progress >= COST_OF_BUILDING_A_UNIT
+    return unless @unit_progress >= COST_OF_BUILDING_A_UNIT && can_produce
 
     @unit_progress = nil
     return Vehicle.new(
