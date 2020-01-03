@@ -71,6 +71,7 @@ class Game
     capture_generators_and_kill_capturing_vehicles
     remove_killed_vehicles
     kill_colliding_vehicles_and_damage_collided_factories
+    kill_arriving_vehicles_and_heal_factories
     remove_killed_vehicles
     remove_killed_factories
 
@@ -149,17 +150,22 @@ protected
       player_1.vehicles.product(player_2.vehicles).each do |vehicle_1, vehicle_2|
         vehicle_1.kill if vehicle_1.collided_with_vehicle?(vehicle_2)
       end
-      player_1.vehicles.product(player_1.factories).each do |vehicle, factory|
-        # FIXME: Give players control over healing active factories
-        if !vehicle.dead && factory.damaged? && !factory.factory_ready && factory.vehicle_collided?(vehicle)
-          vehicle.kill
-          factory.heal
-        end
-      end
       player_1.vehicles.product(player_2.factories).each do |vehicle, factory|
         if factory.vehicle_collided?(vehicle)
           vehicle.kill
           factory.damage :vehicle_collision
+        end
+      end
+    end
+  end
+
+  def kill_arriving_vehicles_and_heal_factories
+    @players.each do |player|
+      player.vehicles.product(player.factories).each do |vehicle, factory|
+        # FIXME: Give players control over healing active factories
+        if !vehicle.dead && factory.damaged? && !factory.factory_ready && factory.vehicle_collided?(vehicle)
+          vehicle.kill
+          factory.heal
         end
       end
     end
