@@ -6,7 +6,8 @@ require_relative './player_ai'
 
 class Game
   def self.from_config(config, screen_size: 800)
-    scale_factor = screen_size.to_f / config["size"]
+    world_size = config["size"]
+    scale_factor = screen_size.to_f / world_size
 
     generators = config["generators"].map do |g|
       Generator.new(
@@ -22,6 +23,8 @@ class Game
         GuardNearestAI.new
       when "attack_nearest_ai"
         AttackNearestAI.new
+      when "spam_factories_ai"
+        SpamFactoriesAI.new(world_size)
       else
         raise "no control specified for player with color #{p["color"]}"
       end
