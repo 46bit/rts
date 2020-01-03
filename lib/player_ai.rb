@@ -97,7 +97,7 @@ class SpamFactoriesAI < GuardNearestAI
           vehicle.update(accelerate_mode: "forward_and_left")
         end
       elsif (vehicle.position - @target).magnitude < 10
-        if already_building?(player) || reasonable_target?(@target, generators, player, other_players)
+        if reasonable_target?(@target, generators, player, other_players) && !already_building?(player)
           vehicle.kill
           player.add_factory Factory.new(
             @target.clone,
@@ -105,7 +105,7 @@ class SpamFactoriesAI < GuardNearestAI
             scale_factor: player.factories[0].scale_factor,
             factory_ready: false,
             health: 20,
-          ) unless already_building?(player)
+          )
         end
         @target = nil if building_complete?(player)
       elsif vehicle.turn_left_to_reach?(@target) && rand > 0.2
@@ -131,14 +131,16 @@ class BuildFactoryAtCentreThenAttackAI < AttackNearestAI
 
     player.vehicles.each do |vehicle|
       if (vehicle.position - @target).magnitude < 10
-        vehicle.kill
-        player.add_factory Factory.new(
-          @target.clone,
-          player,
-          scale_factor: player.factories[0].scale_factor,
-          factory_ready: false,
-          health: 20,
-        ) unless player.factories.length == 2
+        unless player.factories.length == 2
+          vehicle.kill
+          player.add_factory Factory.new(
+            @target.clone,
+            player,
+            scale_factor: player.factories[0].scale_factor,
+            factory_ready: false,
+            health: 20,
+          )
+        end
         @target = false if player.factories.length == 2 && player.factories[1].factory_ready
         break
       elsif vehicle.turn_left_to_reach?(@target) && rand > 0.2
