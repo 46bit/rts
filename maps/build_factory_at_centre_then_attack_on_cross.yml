@@ -1,4 +1,5 @@
 ---
+sandbox: true
 unit_cap: 200
 size: 600
 players:

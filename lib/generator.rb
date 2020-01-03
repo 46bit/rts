@@ -37,7 +37,7 @@ class Generator
   end
 
   def capture(player)
-    puts "generator '#{self.object_id}' captured by player with color: #{player.color}"
+    # puts "generator '#{self.object_id}' captured by player with color: #{player.color}"
     @player_owner = player
   end
 

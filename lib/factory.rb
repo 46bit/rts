@@ -116,10 +116,8 @@ class Factory
 
     if @factory_ready
       @outline.opacity = 1.0
-      @square.opacity = 1.0
     else
-      @outline.opacity = healthyness
-      @square.opacity = healthyness
+      @outline.opacity = 0.2 + 0.8 * healthyness
     end
 
     if @unit_progress.nil?
