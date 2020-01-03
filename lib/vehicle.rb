@@ -43,6 +43,7 @@ class Vehicle
 
   def kill
     @dead = true
+    return if HEADLESS
     @circle.remove
     @line.remove
   end

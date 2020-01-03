@@ -75,12 +75,12 @@ class Game
     remove_killed_vehicles
     remove_killed_factories
 
-    @generators.each(&:render)
+    @generators.each(&:render) unless HEADLESS
     @players.each do |player|
       # FIXME: Reallow control over creating new units?
       player.factories.each(&:construct_new)
       player.update(@generators, @players - [player])
-      player.render
+      player.render unless HEADLESS
     end
     remove_killed_vehicles
 
@@ -92,6 +92,7 @@ class Game
       else
         @win_time = Time.now
         puts "#{@winner} wins!"
+        exit 0 if HEADLESS
         @label = Text.new(
           "#{@winner} wins!",
           x: @world_size / 2 * @scale_factor,

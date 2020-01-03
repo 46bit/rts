@@ -7,6 +7,7 @@ class Generator
     @capacity = capacity
     @player_owner = nil
 
+    return if HEADLESS
     @triangle = Triangle.new(
       x1: @position[0] * scale_factor,
       y1: (@position[1] - 6.5) * scale_factor,

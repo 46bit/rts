@@ -19,6 +19,7 @@ class Factory
     @damages = damages
     @construction_progress = nil
 
+    return if HEADLESS
     @outline = Square.new(
       x: (@position[0] - 9.5) * @scale_factor,
       y: (@position[1] - 9.5) * @scale_factor,
@@ -72,7 +73,7 @@ class Factory
   def damage(cause)
     raise "damage type #{cause} not found on factory" unless @damages.has_key?(cause)
     @health = [@health - @damages[cause], 0].max
-    if dead?
+    if dead? && !HEADLESS
       @outline.remove
       @square.remove
       @progress_square.remove
