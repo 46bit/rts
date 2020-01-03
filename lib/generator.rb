@@ -48,11 +48,12 @@ class Generator
     @player_owner == player
   end
 
-  def contains?(x, y)
-    @target_circle.contains?(x, y)
+  def vehicle_collided?(vehicle)
+    distance = (@position - vehicle.position).magnitude
+    distance <= 9.0
   end
 
-  def tick
+  def render
     @triangle.color = occupied? ? @player_owner.color : 'white'
   end
 end

@@ -75,7 +75,7 @@ class Game
     remove_killed_vehicles
     remove_killed_factories
 
-    @generators.each(&:tick)
+    @generators.each(&:render)
     @players.each do |player|
       # FIXME: Reallow control over creating new units?
       player.factories.each(&:construct_new)
@@ -164,7 +164,7 @@ protected
         next if generator.owner?(player)
         player.vehicles.each do |vehicle|
           # FIXME: Create a `Generator.captured_by?` method
-          if generator.contains?(vehicle.circle.x, vehicle.circle.y)
+          if generator.vehicle_collided?(vehicle)
             generator.capture(player)
             vehicle.kill
           end
