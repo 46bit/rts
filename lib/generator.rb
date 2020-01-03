@@ -1,6 +1,6 @@
 class Generator
   attr_reader :position, :capacity
-  attr_reader :player_owner, :triangle, :target_circle
+  attr_reader :player_owner, :triangle, :target_circle, :label
 
   def initialize(position, capacity: 1.0, scale_factor: 1.0)
     @position = position
@@ -24,6 +24,15 @@ class Generator
       opacity: 0,
       z: 0,
     )
+    @label = Text.new(
+      @capacity.to_s,
+      x: @position[0] * scale_factor,
+      y: (@position[1] + 8.5) * scale_factor,
+      size: 10 * scale_factor,
+      color: 'white',
+      z: 1,
+    )
+    @label.x -= @label.width / 2
   end
 
   def capture(player)
