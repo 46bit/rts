@@ -1,23 +1,23 @@
 require_relative './vehicle'
 
-DEFAULT_DAMAGES = {
-  vehicle_collision: 10,
-}
-
 class Factory
-  attr_reader :position, :player, :build_time, :scale_factor
-  attr_reader :health, :full_health, :damages, :construction_progress
+  COST_OF_BUILDING_A_UNIT = 100
+  DAMAGING_EVENTS = {
+    vehicle_collision: 10,
+  }
+
+  attr_reader :position, :player, :health, :full_health
+  attr_reader :factory_ready, :scale_factor, :unit_progress
   attr_reader :outline, :square, :progress_square, :health_bar
 
-  def initialize(position, player, build_time: 10, scale_factor: 1.0, health: 100, damages: DEFAULT_DAMAGES)
+  def initialize(position, player, health: 100, factory_ready: true, scale_factor: 1.0)
     @position = position
     @player = player
-    @build_time = build_time
-    @scale_factor = scale_factor
     @health = health
-    @full_health = health.clone
-    @damages = damages
-    @construction_progress = nil
+    @full_health = 100
+    @factory_ready = factory_ready
+    @scale_factor = scale_factor
+    @unit_progress = nil
 
     return if HEADLESS
     @outline = Square.new(
@@ -54,11 +54,12 @@ class Factory
   end
 
   def construct_new
-    @construction_progress ||= 0
+    return unless @factory_ready
+    @unit_progress ||= 0
   end
 
   def progress
-    @construction_progress.to_f / @build_time
+    @unit_progress.to_f / COST_OF_BUILDING_A_UNIT
   end
 
   def vehicle_collided?(vehicle)
@@ -70,9 +71,22 @@ class Factory
     @health.zero?
   end
 
+  def damaged?
+    @health < @full_health
+  end
+
+  def healthyness
+    @health.to_f / @full_health
+  end
+
+  def heal
+    @health = [@full_health, @health + 20].min
+    @factory_ready = true if @health == @full_health
+  end
+
   def damage(cause)
-    raise "damage type #{cause} not found on factory" unless @damages.has_key?(cause)
-    @health = [@health - @damages[cause], 0].max
+    raise "damage type #{cause} not found on factory" unless DAMAGING_EVENTS.has_key?(cause)
+    @health = [@health - DAMAGING_EVENTS[cause], 0].max
     if dead? && !HEADLESS
       @outline.remove
       @square.remove
@@ -82,12 +96,13 @@ class Factory
   end
 
   def update(build_capacity)
-    return if @construction_progress.nil?
+    return unless @factory_ready
+    return if @unit_progress.nil?
 
-    @construction_progress += build_capacity
-    return unless @construction_progress >= @build_time
+    @unit_progress += build_capacity
+    return unless @unit_progress >= COST_OF_BUILDING_A_UNIT
 
-    @construction_progress = nil
+    @unit_progress = nil
     return Vehicle.new(
       @position,
       @player,
@@ -96,11 +111,20 @@ class Factory
   end
 
   def render
-    health_proportion = @health.to_f / @full_health
-    @health_bar.x2 = (@position[0] - 9.5 + 19 * health_proportion) * @scale_factor
-    @health_bar.width = health_proportion > 0.5 ? 1.5 * @scale_factor : 2 * @scale_factor
+    @health_bar.x2 = (@position[0] - 9.5 + 19 * healthyness) * @scale_factor
+    @health_bar.width = healthyness > 0.5 ? 1.5 * @scale_factor : 2 * @scale_factor
 
-    if @construction_progress.nil?
+    if @factory_ready
+      @outline.opacity = 1.0
+      @square.opacity = 1.0
+      @progress_square.opacity = 1.0
+    else
+      @outline.opacity = healthyness
+      @square.opacity = healthyness
+      @progress_square.opacity = healthyness
+    end
+
+    if @unit_progress.nil?
       @progress_square.opacity = 0.0
     else
       @progress_square.opacity = 0.1 + 0.9 * progress

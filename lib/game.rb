@@ -40,7 +40,6 @@ class Game
       player.add_factory Factory.new(
         Vector[p["x"], p["y"]],
         player,
-        build_time: config["build_time"],
         scale_factor: scale_factor,
       )
       player
@@ -149,6 +148,13 @@ protected
       next if player_1 == player_2
       player_1.vehicles.product(player_2.vehicles).each do |vehicle_1, vehicle_2|
         vehicle_1.kill if vehicle_1.collided_with_vehicle?(vehicle_2)
+      end
+      player_1.vehicles.product(player_1.factories).each do |vehicle, factory|
+        # FIXME: Give players control over healing active factories
+        if !vehicle.dead && factory.damaged? && !factory.factory_ready && factory.vehicle_collided?(vehicle)
+          vehicle.kill
+          factory.heal
+        end
       end
       player_1.vehicles.product(player_2.factories).each do |vehicle, factory|
         if factory.vehicle_collided?(vehicle)

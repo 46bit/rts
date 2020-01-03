@@ -79,6 +79,14 @@ class SpamFactoriesAI < GuardNearestAI
     return reasonable
   end
 
+  def already_building?(player)
+    player.factories.select { |f| f.position == @target }[0]
+  end
+
+  def building_complete?(player)
+    already_building?(player).factory_ready
+  end
+
   def update(generators, player, other_players)
     player.vehicles.each do |vehicle|
       choose_new_target(generators, player, other_players) if @target.nil?
@@ -89,16 +97,17 @@ class SpamFactoriesAI < GuardNearestAI
           vehicle.update(accelerate_mode: "forward_and_left")
         end
       elsif (vehicle.position - @target).magnitude < 10
-        if reasonable_target?(@target, generators, player, other_players)
+        if already_building?(player) || reasonable_target?(@target, generators, player, other_players)
           vehicle.kill
           player.add_factory Factory.new(
             @target.clone,
             player,
-            build_time: player.factories[0].build_time,
             scale_factor: player.factories[0].scale_factor,
-          )
+            factory_ready: false,
+            health: 20,
+          ) unless already_building?(player)
         end
-        @target = nil
+        @target = nil if building_complete?(player)
       elsif vehicle.turn_left_to_reach?(@target) && rand > 0.2
         vehicle.update(accelerate_mode: "forward_and_left")
       elsif vehicle.turn_right_to_reach?(@target) && rand > 0.2
@@ -118,7 +127,7 @@ class BuildFactoryAtCentreThenAttackAI < AttackNearestAI
   end
 
   def update(generators, player, other_players)
-    return super unless @target
+    return super unless @target && generators.select { |g| g.owner?(player) }.length > 0
 
     player.vehicles.each do |vehicle|
       if (vehicle.position - @target).magnitude < 10
@@ -126,10 +135,11 @@ class BuildFactoryAtCentreThenAttackAI < AttackNearestAI
         player.add_factory Factory.new(
           @target.clone,
           player,
-          build_time: player.factories[0].build_time,
           scale_factor: player.factories[0].scale_factor,
-        )
-        @target = false
+          factory_ready: false,
+          health: 20,
+        ) unless player.factories.length == 2
+        @target = false if player.factories.length == 2 && player.factories[1].factory_ready
         break
       elsif vehicle.turn_left_to_reach?(@target) && rand > 0.2
         vehicle.update(accelerate_mode: "forward_and_left")
