@@ -110,7 +110,7 @@ class Factory
 
     @unit_progress = nil
     # FIXME: Allow users to choose when to build a turret, and tweak the build cost
-    if rand > 0.5
+    if true #rand > 0.5
       return Turret.new(
         @position,
         @player,
