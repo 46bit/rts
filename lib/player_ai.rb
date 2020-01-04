@@ -39,6 +39,8 @@ end
 class AttackNearestAI
   def update(generators, player, other_players)
     targets = generators.reject { |g| g.owner?(player) }
+    targets += other_players.map(&:vehicles).flatten.select { |v| v.class == Turret } if targets.length >= generators.length / 2
+    targets += other_players.select { |p| p.vehicles.length <= player.vehicles.length / 4 }.map(&:factories).flatten
     targets = other_players.map(&:factories).flatten + other_players.map(&:vehicles).flatten if targets.empty?
     targets = generators + player.factories if targets.empty?
     player.vehicles.each do |vehicle|
