@@ -1,20 +1,19 @@
-require 'matrix'
-require_relative './vehicle_physics'
-require_relative './utils'
+require_relative '../utils'
 
 class Projectile
-  # FIXME: Have a maximum range as well
   MOVEMENT_RATE = 3.5
   MAXIMUM_RANGE = 180
+  COLLISION_RADIUS = 4
 
-  attr_reader :position, :direction, :velocity
-  attr_reader :dead, :start_position, :circle
+  attr_reader :position, :direction, :velocity, :scale_factor
+  attr_reader :dead, :start_position, :circle, :damage_type
 
-  def initialize(position, direction, color, scale_factor: 1.0)
+  def initialize(position, direction, color, scale_factor: 1.0, damage_type: :projectile_collision)
     @position = position
     @start_position = position
     @direction = direction
     @scale_factor = scale_factor
+    @damage_type = damage_type
     @velocity = MOVEMENT_RATE * @scale_factor
     @dead = false
 
@@ -27,20 +26,11 @@ class Projectile
       opacity: 0.7,
       z: 5,
     )
-    # @range_circle = Circle.new(
-    #   x: (@position[0] - 1.5) * @scale_factor,
-    #   y: (@position[1] - 1.5) * @scale_factor,
-    #   radius: scale_factor * MAXIMUM_RANGE,
-    #   color: color,
-    #   opacity: 0.1,
-    #   z: 0,
-    # )
   end
 
   def kill
     @dead = true
-    return if HEADLESS
-    @circle.remove
+    @circle.remove unless HEADLESS
   end
 
   def update

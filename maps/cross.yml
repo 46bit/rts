@@ -1,9 +1,9 @@
 ---
 unit_cap: 200
-size: 600
+world_size: 600
 players:
   - color: green
-    control: guard_nearest_ai
+    control: spam_structures_ai
     x: 65
     y: 65
   - color: red
@@ -11,7 +11,7 @@ players:
     x: 535
     y: 65
   - color: yellow
-    control: attack_nearest_ai
+    control: build_factory_at_centre_then_attack_ai
     x: 65
     y: 535
   - color: blue

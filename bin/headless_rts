@@ -12,5 +12,5 @@ config = YAML.safe_load(File.read(config_path))
 game = Game.from_config(config, screen_size: 800)
 
 loop do
-  game.tick
+  game.update
 end

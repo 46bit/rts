@@ -19,7 +19,8 @@ set(
 )
 
 update do
-  game.tick
+  game.update
+  game.render
 end
 
 # on :mouse_down do |event|

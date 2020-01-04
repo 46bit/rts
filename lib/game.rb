@@ -1,54 +1,20 @@
 require 'matrix'
-require_relative './generator'
-require_relative './factory'
+require_relative './structures/generator'
+require_relative './structures/factory'
 require_relative './player'
-require_relative './player_ai'
+require_relative './ai'
 
 class Game
   def self.from_config(config, screen_size: 800)
-    world_size = config["size"]
-    scale_factor = screen_size.to_f / world_size
-
-    generators = config["generators"].map do |g|
-      Generator.new(
-        Vector[g["x"], g["y"]],
-        capacity: g["capacity"],
-        scale_factor: scale_factor,
-      )
+    scale_factor = screen_size.to_f / config.fetch("world_size")
+    generators = config.fetch("generators").map do |generator_config|
+      Generator::from_config(generator_config, scale_factor)
     end
-
-    players = config["players"].map do |p|
-      control = case p["control"]
-      when "guard_nearest_ai"
-        GuardNearestAI.new
-      when "attack_nearest_ai"
-        AttackNearestAI.new
-      when "spam_factories_ai"
-        SpamFactoriesAI.new(world_size, scale_factor)
-      when "build_factory_at_centre_then_attack_ai"
-        BuildFactoryAtCentreThenAttackAI.new(generators, scale_factor)
-      when "kill_factories_ai"
-        KillFactoriesAI.new
-      when "spam_turrets_ai"
-        SpamTurretsAI.new(world_size)
-      else
-        raise "no control specified for player with color #{p["color"]}"
-      end
-      player = Player.new(
-        p["color"],
-        control,
-        unit_cap: config["unit_cap"],
-      )
-      player.add_factory Factory.new(
-        Vector[p["x"], p["y"]],
-        player,
-        scale_factor: scale_factor,
-      )
-      player
+    players = config.fetch("players").map do |player_config|
+      Player::from_config(player_config, config.fetch("unit_cap"), scale_factor, generators)
     end
-
     return Game.new(
-      world_size,
+      config.fetch("world_size"),
       screen_size,
       generators,
       players,
@@ -69,33 +35,35 @@ class Game
     @winner = false
   end
 
-  def tick
+  def update
     kill_enemy_things_that_projectiles_collide_with
     remove_killed_projectiles
     capture_generators_and_kill_capturing_vehicles
     remove_killed_vehicles
     kill_colliding_vehicles_and_damage_collided_factories
-    kill_arriving_vehicles_and_heal_factories
     remove_killed_vehicles
     remove_killed_factories
 
     @generators.each(&:render) unless HEADLESS
     @players.each do |player|
       # FIXME: Reallow control over creating new units?
-      player.factories.each(&:construct_new)
+      player.factories.each(&:construct)
       player.update(@generators, @players - [player])
-      player.render unless HEADLESS
     end
     remove_killed_vehicles
     remove_killed_projectiles
 
     # puts @players.map { |p| [p.color, p.score] }.inspect
     check_for_winner unless @sandbox || @winner
+  end
+
+  def render
+    @generators.each(&:render)
+    @players.each(&:render)
+
     if @winner
-      if @label
-        exit 0 if Time.now - @win_time > 5
-      else
-        @win_time = Time.now
+      exit 0 if Time.now - @win_time > 5
+      unless @label
         puts "#{@winner} wins!"
         exit 0 if HEADLESS
         @label = Text.new(
@@ -136,6 +104,7 @@ protected
     else
       false
     end
+    @win_time = Time.now if @winner
   end
 
   def remove_killed_vehicles
@@ -170,9 +139,15 @@ protected
           end
         end
         player_2.factories.each do |factory|
-          if factory.collided_with_projectile?(projectile)
+          if factory.collided?(projectile)
             kill_projectile = true
-            factory.damage :projectile_collision
+            factory.damage(projectile.damage_type)
+          end
+        end
+        player_2.turrets.each do |turret|
+          if turret.collided?(projectile)
+            kill_projectile = true
+            turret.damage(projectile.damage_type)
           end
         end
 
@@ -188,21 +163,15 @@ protected
         vehicle_1.kill if vehicle_1.collided_with_vehicle?(vehicle_2)
       end
       player_1.vehicles.product(player_2.factories).each do |vehicle, factory|
-        if factory.vehicle_collided?(vehicle)
+        if factory.collided?(vehicle)
           vehicle.kill
           factory.damage :vehicle_collision
         end
       end
-    end
-  end
-
-  def kill_arriving_vehicles_and_heal_factories
-    @players.each do |player|
-      player.vehicles.product(player.factories).each do |vehicle, factory|
-        # FIXME: Give players control over healing active factories
-        if !vehicle.dead && factory.damaged? && !factory.factory_ready && factory.vehicle_collided?(vehicle)
+      player_1.vehicles.product(player_2.turrets).each do |vehicle, turret|
+        if turret.collided?(vehicle)
           vehicle.kill
-          factory.heal
+          turret.damage :vehicle_collision
         end
       end
     end
@@ -213,8 +182,7 @@ protected
       @players.each do |player|
         next if generator.owner?(player)
         player.vehicles.each do |vehicle|
-          # FIXME: Create a `Generator.captured_by?` method
-          if generator.vehicle_collided?(vehicle)
+          if generator.collided?(vehicle)
             generator.capture(player)
             vehicle.kill
           end

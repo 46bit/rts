@@ -1,11 +1,12 @@
 require 'matrix'
 require_relative './vehicle_physics'
-require_relative './utils'
+require_relative '../utils'
 
 class Vehicle
   PHYSICS = DEFAULT_VEHICLE_PHYSICS
   MOVEMENT_RATE = 0.1
   TURN_RATE = 4.0/3.0
+  COLLISION_RADIUS = 5
 
   attr_reader :scale_factor
   attr_reader :position, :player, :direction, :velocity, :angular_velocity
@@ -35,7 +36,7 @@ class Vehicle
       y1: @position[1] * @scale_factor,
       x2: @position[0] * @scale_factor + v[0],
       y2: @position[1] * @scale_factor + v[1],
-      width: 3 * @scale_factor, # FIXME: Base this on @scale_factor
+      width: 3 * @scale_factor,
       color: 'black',
       z: 2,
     )
@@ -46,6 +47,26 @@ class Vehicle
     return if HEADLESS
     @circle.remove
     @line.remove
+  end
+
+  def construct_structure(structure_class, *args, **kargs)
+    return false if @dead
+    kill
+    structure = structure_class.new(
+      @position,
+      *args,
+      player: @player,
+      scale_factor: @scale_factor,
+      **kargs
+    )
+    structure.heal(:vehicle_repair)
+    return structure
+  end
+
+  def repair_structure(structure)
+    return false if @dead || !structure.collided?(self)
+    kill
+    structure.heal(:vehicle_repair)
   end
 
   def update(accelerate_mode: "forward")
