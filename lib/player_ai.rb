@@ -214,3 +214,67 @@ class KillFactoriesAI
     end
   end
 end
+
+class SpamTurretsAI < GuardNearestAI
+  def initialize(world_size)
+    @world_size = world_size
+    @targets = {}
+  end
+
+  def choose_new_target(turret, generators, player, other_players)
+    target = Vector[
+      (0.02 + 0.98 * rand) * @world_size,
+      (0.02 + 0.98 * rand) * @world_size,
+    ]
+    player_generators = generators.select { |g| g.owner?(player) }
+    nearest_structure = (player.factories + player_generators).min_by { |f| (target - f.position).magnitude }
+    return if (target - nearest_structure.position).magnitude > @world_size / 3
+    target if reasonable_target?(target, generators, player, other_players)
+  end
+
+  def reasonable_target?(target, generators, player, other_players)
+    all_factories = player.factories + other_players.map(&:factories).flatten
+    all_turrets = (player.vehicles + other_players.map(&:vehicles).flatten).select { |v| v.class == Turret }
+    all_structures = generators + all_factories + all_turrets
+
+    reasonable = true
+    all_structures.each do |structure|
+      if (structure.position - target).magnitude < 20
+        reasonable = false
+        break
+      end
+    end
+    return reasonable
+  end
+
+  def update(generators, player, other_players)
+    super if generators.select { |g| g.owner?(player) }.length < [2, player.vehicles.length / 7].max
+
+    player.vehicles.each do |vehicle|
+      next if vehicle.dead
+      raise "doesn't support non-turret units" if vehicle.class != Turret
+
+      if vehicle.class == Turret && vehicle.deployed
+        update_turret(vehicle, player, other_players)
+        next
+      end
+
+      target = @targets[vehicle.object_id]
+      if target.nil?
+        target = choose_new_target(vehicle, generators, player, other_players)
+        @targets[vehicle.object_id] = target
+      end
+
+      if !target.nil? && (vehicle.position - target).magnitude < 10
+        vehicle.deploy
+        @targets.delete(vehicle.object_id)
+      elsif !target.nil? && vehicle.turn_left_to_reach?(target) && rand > 0.2
+        vehicle.update(accelerate_mode: "forward_and_left")
+      elsif !target.nil? && vehicle.turn_right_to_reach?(target) && rand > 0.2
+        vehicle.update(accelerate_mode: "forward_and_right")
+      else
+        vehicle.update(accelerate_mode: "forward")
+      end
+    end
+  end
+end
