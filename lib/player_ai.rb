@@ -63,8 +63,9 @@ class AttackNearestAI
 end
 
 class SpamFactoriesAI < GuardNearestAI
-  def initialize(world_size)
+  def initialize(world_size, scale_factor)
     @world_size = world_size
+    @scale_factor = scale_factor
     @stalled_time = 0
   end
 
@@ -128,7 +129,7 @@ class SpamFactoriesAI < GuardNearestAI
             player.add_factory Factory.new(
               @target.clone,
               player,
-              scale_factor: player.factories[0].scale_factor,
+              scale_factor: @scale_factor,
               factory_ready: false,
               health: 20,
             )
@@ -147,7 +148,8 @@ class SpamFactoriesAI < GuardNearestAI
 end
 
 class BuildFactoryAtCentreThenAttackAI < AttackNearestAI
-  def initialize(generators)
+  def initialize(generators, scale_factor)
+    @scale_factor = scale_factor
     average_generator_x = generators.map(&:position).map { |p| p[0] }.sum.to_f / generators.length
     average_generator_y = generators.map(&:position).map { |p| p[1] }.sum.to_f / generators.length
     @target = Vector[average_generator_x, average_generator_y]
@@ -169,7 +171,7 @@ class BuildFactoryAtCentreThenAttackAI < AttackNearestAI
           player.add_factory Factory.new(
             @target.clone,
             player,
-            scale_factor: player.factories[0].scale_factor,
+            scale_factor: @scale_factor,
             factory_ready: false,
             health: 20,
           )

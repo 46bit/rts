@@ -24,9 +24,9 @@ class Game
       when "attack_nearest_ai"
         AttackNearestAI.new
       when "spam_factories_ai"
-        SpamFactoriesAI.new(world_size)
+        SpamFactoriesAI.new(world_size, scale_factor)
       when "build_factory_at_centre_then_attack_ai"
-        BuildFactoryAtCentreThenAttackAI.new(generators)
+        BuildFactoryAtCentreThenAttackAI.new(generators, scale_factor)
       when "kill_factories_ai"
         KillFactoriesAI.new
       else
