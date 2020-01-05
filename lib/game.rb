@@ -72,8 +72,8 @@ class Game
           color: 'white',
           z: 10,
         )
-        @label.x -= @label.width / 2
-        @label.y -= @label.height / 2
+        @label.align_centre
+        @label.align_middle
       end
     end
   end

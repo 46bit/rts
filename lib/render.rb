@@ -132,4 +132,20 @@ class RenderText < RenderShape
   attr_shape_distance :size
   # FIXME: width and height are readonly
   attr_shape_static :z, :color, :opacity, :width, :height, :text
+
+  def align_centre
+    @align_centre = true
+    @shape.x -= @shape.width / 2.0
+  end
+
+  def align_middle
+    @align_middle = true
+    @shape.y -= @shape.height / 2.0
+  end
+
+  def recompute
+    super
+    align_centre if @align_centre
+    align_middle if @align_middle
+  end
 end

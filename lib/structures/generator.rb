@@ -57,7 +57,7 @@ class Generator < Structure
       color: 'white',
       z: 1,
     )
-    @label.x -= @label.width / 2
+    @label.align_centre
   end
 
   def render
