@@ -37,8 +37,6 @@ on :key_held do |event|
     game.renderer.move(0, -5)
   when "down"
     game.renderer.move(0, 5)
-  else
-    puts "unrecognised key: #{event.key}"
   end
 end
 
