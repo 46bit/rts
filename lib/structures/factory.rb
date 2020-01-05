@@ -97,5 +97,11 @@ class Factory < BuildableStructure
 
     @outline.opacity = @built ? 1.0 : (0.2 + healthyness * 0.8)
     @progress_square.opacity = @unit.nil? ? 0.0 : (0.1 + unit_progress * 0.9)
+
+    if damaged?
+      @health_bar.add
+    else
+      @health_bar.remove
+    end
   end
 end
