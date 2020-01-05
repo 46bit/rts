@@ -6,8 +6,8 @@ class Renderer
   def initialize(screen_size, world_size)
     @screen_size = screen_size
     @world_size = world_size
-    @centre_x = 0 # world_size.to_f #/ 2.0
-    @centre_y = 0 # world_size.to_f #/ 2.0
+    @centre_x = 0
+    @centre_y = 0
     @zoom_multiplier = 1.0
     @shapes = {}
     recalculate_scale_multiplier
@@ -44,8 +44,14 @@ class Renderer
   end
 
   def zoom(in_or_out)
+    centre_of_screen_before_x = unapply(:x, @screen_size / 2)
+    centre_of_screen_before_y = unapply(:y, @screen_size / 2)
     @zoom_multiplier *= in_or_out ? 1.1 : 0.9
     recalculate_scale_multiplier
+    centre_of_screen_after_x = unapply(:x, @screen_size / 2)
+    centre_of_screen_after_y = unapply(:y, @screen_size / 2)
+    @centre_x += (centre_of_screen_before_x - centre_of_screen_after_x)
+    @centre_y += (centre_of_screen_before_y - centre_of_screen_after_y)
     recompute_shapes
   end
 
@@ -61,6 +67,19 @@ class Renderer
       (value - @centre_x) * @scale_multiplier
     when :y
       (value - @centre_y) * @scale_multiplier
+    else
+      raise "unknown value type to render: #{type}"
+    end
+  end
+
+  def unapply(type, value)
+    case type
+    when :distance
+      value / @scale_multiplier
+    when :x
+      value / @scale_multiplier + @centre_x
+    when :y
+      value / @scale_multiplier + @centre_y
     else
       raise "unknown value type to render: #{type}"
     end
