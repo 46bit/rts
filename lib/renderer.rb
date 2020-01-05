@@ -25,6 +25,10 @@ class Renderer
     RenderSquare.new(self, **kargs)
   end
 
+  def quad(**kargs)
+    RenderQuad.new(self, **kargs)
+  end
+
   def line(**kargs)
     RenderLine.new(self, **kargs)
   end
@@ -116,6 +120,13 @@ class RenderSquare < RenderShape
   attr_shape_x :x
   attr_shape_y :y
   attr_shape_distance :size
+  attr_shape_static :z, :color, :opacity
+end
+
+class RenderQuad < RenderShape
+  SHAPE = Quad
+  attr_shape_x :x1, :x2, :x3, :x4
+  attr_shape_y :y1, :y2, :y3, :y4
   attr_shape_static :z, :color, :opacity
 end
 

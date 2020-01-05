@@ -19,7 +19,8 @@ class Turret < BuildableStructure
   def kill
     super
     unless HEADLESS
-      @circle.remove
+      @square.remove
+      @quad.remove
       @health_bar.remove
     end
   end
@@ -43,13 +44,25 @@ class Turret < BuildableStructure
   end
 
   def prerender
-    @circle = @renderer.circle(
+    @square = @renderer.square(
       x: @position[0] - 2.5,
       y: @position[1] - 2.5,
-      radius: 5,
+      size: 5,
       color: @player.color,
       opacity: @built ? 1.0 : (0.2 + healthyness * 0.8),
-      segments: 20,
+      z: 2,
+    )
+    @quad = @renderer.quad(
+      x1: @position[0],
+      y1: @position[1] - 3.6,
+      x2: @position[0] + 3.6,
+      y2: @position[1],
+      x3: @position[0],
+      y3: @position[1] + 3.6,
+      x4: @position[0] - 3.6,
+      y4: @position[1],
+      color: @player.color,
+      opacity: @built ? 1.0 : (0.2 + healthyness * 0.8),
       z: 2,
     )
     @health_bar = @renderer.line(
@@ -72,7 +85,8 @@ class Turret < BuildableStructure
   end
 
   def render
-    @circle.opacity = @built ? 1.0 : (0.2 + healthyness * 0.8)
+    @square.opacity = @built ? 1.0 : (0.2 + healthyness * 0.8)
+    @quad.opacity = @built ? 1.0 : (0.2 + healthyness * 0.8)
 
     @health_bar.x2 = @position[0] - 7.5 + 10 * healthyness
     @health_bar.width = healthyness > 0.5 ? 1.5 : 2
