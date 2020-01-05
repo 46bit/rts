@@ -6,15 +6,17 @@ class Player
     ai = ai_from_string(player_config["control"], renderer.world_size, generators)
     raise "no AI found for player configured to use '#{player_config["control"]}'" unless ai
     player = Player.new(player_config["color"], ai, renderer, unit_cap: unit_cap)
-    player.factories << Factory.new(
-      Vector[
-        player_config["x"],
-        player_config["y"]
-      ],
-      player,
-      renderer,
-      built: true,
-    )
+    player_config["factories"].each do |factory_config|
+      player.factories << Factory.new(
+        Vector[
+          factory_config["x"],
+          factory_config["y"]
+        ],
+        player,
+        renderer,
+        built: true,
+      )
+    end
     return player
   end
 

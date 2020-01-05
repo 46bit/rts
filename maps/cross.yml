@@ -4,20 +4,24 @@ world_size: 600
 players:
   - color: green
     control: defensive_ai
-    x: 65
-    y: 65
+    factories:
+    - x: 65
+      y: 65
   - color: red
     control: attack_nearest_ai
-    x: 535
-    y: 65
+    factories:
+    - x: 535
+      y: 65
   - color: yellow
     control: build_factory_at_centre_then_attack_ai
-    x: 65
-    y: 535
+    factories:
+    - x: 65
+      y: 535
   - color: blue
     control: kill_factories_ai
-    x: 535
-    y: 535
+    factories:
+    - x: 535
+      y: 535
 generators:
   - x: 75
     y: 300
