@@ -18,7 +18,7 @@ class Player
     return player
   end
 
-  attr_reader :color, :control, :unit_cap, :base_generation_capacity, :score, :renderer
+  attr_reader :color, :control, :unit_cap, :base_generation_capacity, :renderer
   attr_accessor :factories, :vehicles, :turrets, :projectiles
 
   def initialize(color, control, renderer, unit_cap: Float::INFINITY, base_generation_capacity: 1.0)
@@ -31,17 +31,16 @@ class Player
     @vehicles = []
     @turrets = []
     @projectiles = []
-    @score = 0
   end
 
   def update(generators, other_players)
     @latest_build_capacity = build_capacity(generators)
     build_capacity_per_factory = @latest_build_capacity.to_f / @factories.length
     @factories.each do |factory|
+      # FIXME: do something with unused_build_capacity
       unused_build_capacity, vehicle = factory.update(build_capacity_per_factory, can_produce: unit_count < @unit_cap)
       unless vehicle.nil?
         @vehicles << vehicle
-        @score += 1
       end
     end
 

@@ -51,7 +51,6 @@ class Game
     remove_killed_vehicles
     remove_killed_projectiles
 
-    # puts @players.map { |p| [p.color, p.score] }.inspect
     check_for_winner unless @sandbox || @winner
   end
 
