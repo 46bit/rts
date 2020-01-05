@@ -6,8 +6,9 @@ class Turret < BuildableStructure
   COLLISION_RADIUS = 5
   MAX_HEALTH = 300
   FIRING_RATE = 5
+  RADIUS = 5.0
 
-  attr_reader :update_counter, :square, :quad, :health_bar
+  attr_reader :update_counter, :square, :diagonal_square, :health_bar
 
   def initialize(*)
     super
@@ -20,7 +21,7 @@ class Turret < BuildableStructure
     super
     unless HEADLESS
       @square.remove
-      @quad.remove
+      @diagonal_square.remove
       @health_bar.remove
     end
   end
@@ -45,38 +46,39 @@ class Turret < BuildableStructure
 
   def prerender
     @square = @renderer.square(
-      x: @position[0] - 2.5,
-      y: @position[1] - 2.5,
-      size: 5,
+      x: @position[0] - RADIUS,
+      y: @position[1] - RADIUS,
+      size: RADIUS * 2,
       color: @player.color,
       opacity: @built ? 1.0 : (0.2 + healthyness * 0.8),
       z: 2,
     )
-    @quad = @renderer.quad(
+    distance_to_points = Math.sqrt(2) * RADIUS
+    @diagonal_square = @renderer.quad(
       x1: @position[0],
-      y1: @position[1] - 3.6,
-      x2: @position[0] + 3.6,
+      y1: @position[1] - distance_to_points,
+      x2: @position[0] + distance_to_points,
       y2: @position[1],
       x3: @position[0],
-      y3: @position[1] + 3.6,
-      x4: @position[0] - 3.6,
+      y3: @position[1] + distance_to_points,
+      x4: @position[0] - distance_to_points,
       y4: @position[1],
       color: @player.color,
       opacity: @built ? 1.0 : (0.2 + healthyness * 0.8),
       z: 2,
     )
     @health_bar = @renderer.line(
-      x1: @position[0] - 7.5,
-      y1: @position[1] + 4.5,
-      x2: @position[0] + 2.5,
-      y2: @position[1] + 4.5,
+      x1: @position[0] - RADIUS,
+      y1: @position[1] + RADIUS + 1,
+      x2: @position[0] + RADIUS,
+      y2: @position[1] + RADIUS + 1,
       width: 1.5,
       color: @player.color,
       z: 2,
     )
     # @range_circle = @renderer.circle(
-    #   x: @position[0] - 1.5,
-    #   y: @position[1] - 1.5,
+    #   x: @position[0] - RADIUS,
+    #   y: @position[1] - RADIUS,
     #   radius: Projectile::MAXIMUM_RANGE,
     #   color: @player.color,
     #   opacity: 0.1,
@@ -86,9 +88,9 @@ class Turret < BuildableStructure
 
   def render
     @square.opacity = @built ? 1.0 : (0.2 + healthyness * 0.8)
-    @quad.opacity = @built ? 1.0 : (0.2 + healthyness * 0.8)
+    @diagonal_square.opacity = @built ? 1.0 : (0.2 + healthyness * 0.8)
 
-    @health_bar.x2 = @position[0] - 7.5 + 10 * healthyness
+    @health_bar.x2 = @position[0] - RADIUS + 2 * RADIUS * healthyness
     @health_bar.width = healthyness > 0.5 ? 1.5 : 2
     if damaged?
       @health_bar.add
