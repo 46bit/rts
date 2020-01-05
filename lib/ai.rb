@@ -78,7 +78,7 @@ class DefensiveAI < AttackNearestAI
   def target(vehicle, generators, player, other_players)
     return @targets[vehicle.object_id] if @targets[vehicle.object_id] && (@targets[vehicle.object_id].class == Vector || !@targets[vehicle.object_id].dead)
 
-    nearest_construction = @constructions.min_by { |c| (c.position - vehicle.position).magnitude }
+    nearest_construction = @constructions.reject {|c| c.dead}.min_by { |c| (c.position - vehicle.position).magnitude }
     return nearest_construction if nearest_construction
 
     enemy_vehicle_positions = other_players.map(&:vehicles).flatten.map(&:position)
@@ -108,6 +108,8 @@ class DefensiveAI < AttackNearestAI
     ]
 
     unless combat_focus
+      chosen_enemy = other_players.select { |p| p.unit_count > 0 }.shuffle[0]
+      enemy_vehicle_positions = chosen_enemy.vehicles.map(&:position) unless chosen_enemy.nil?
       avg_enemy_vehicle_position = Vector[
         enemy_vehicle_positions.map { |p| p[0] }.sum / [enemy_vehicle_positions.length, 1].max,
         enemy_vehicle_positions.map { |p| p[1] }.sum / [enemy_vehicle_positions.length, 1].max,
@@ -137,7 +139,7 @@ class DefensiveAI < AttackNearestAI
   end
 
   def update(generators, player, other_players)
-    return super if player.turrets.length == 0 && generators.select { |g| g.owner?(player) }.length < 5
+    return super if player.turrets.length == 0 && generators.select { |g| g.owner?(player) }.length < 5 && (other_players.max_by { |p| p.unit_count } == nil || other_players.max_by { |p| p.unit_count }.unit_count < player.unit_count * 2 )
     return super if generators.select { |g| g.owner?(player) }.length < [[player.turrets.select { |t| t.built }.length, 2].min, player.vehicles.length / 5].max
 
     player.vehicles.each do |vehicle|
