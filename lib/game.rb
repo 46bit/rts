@@ -1,7 +1,7 @@
 require 'matrix'
 require_relative './structures/generator'
 require_relative './structures/factory'
-require_relative './render'
+require_relative './renderer'
 require_relative './player'
 require_relative './ai'
 
@@ -62,7 +62,6 @@ class Game
     if @winner
       exit 0 if Time.now - @win_time > 5
       unless @label
-        puts "#{@winner} wins!"
         exit 0 if HEADLESS
         @label = @renderer.text(
           "#{@winner} wins!",
@@ -82,27 +81,20 @@ protected
 
   def check_for_winner
     return if @winner
-    players_with_factories = @players.reject { |p| p.factories.empty? }
-    players_with_vehicles = @players.reject { |p| p.vehicles.empty? }
-    # FIXME: Accommodate players with projectiles
-    zeros_match = players_with_factories[0] == players_with_vehicles[0]
-    @winner = case [players_with_factories.length, players_with_vehicles.length]
-    when [1, 0] # Sole living player only has factories
-      players_with_factories[0].color
-    when [0, 1] # Sole living player only has vehicles
-      players_with_vehicles[0].color
-    when [1, 1]
-      if players_with_factories[0] == players_with_vehicles[0]
-        players_with_vehicles[0].color # Sole living player has factories and vehicles
-      else
-        false # One player has no factories but still has vehicles so could still win
-      end
-    when [0, 0]
-      "nobody"
-    else
-      false
+
+    players_with_a_positive_unit_count = @players.select { |p| p.unit_count > 0 }
+    players_with_projectiles = @players.select { |p| p.projectiles.length > 0 }
+    active_players = (players_with_a_positive_unit_count + players_with_projectiles).uniq
+    if active_players.length == 0
+      @winner = "nobody"
+    elsif active_players.length == 1
+      @winner = active_players[0].color
     end
-    @win_time = Time.now if @winner
+
+    if @winner
+      puts "#{@winner} wins!"
+      @win_time = Time.now
+    end
   end
 
   def remove_killed_vehicles

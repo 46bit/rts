@@ -13,10 +13,6 @@ class Renderer
     recalculate_scale_multiplier
   end
 
-  def recalculate_scale_multiplier
-    @scale_multiplier = @screen_size.to_f / @world_size * @zoom_multiplier
-  end
-
   def circle(**kargs)
     RenderCircle.new(self, **kargs)
   end
@@ -55,10 +51,6 @@ class Renderer
     recompute_shapes
   end
 
-  def recompute_shapes
-    @shapes.values.each(&:recompute)
-  end
-
   def apply(type, value)
     case type
     when :distance
@@ -91,6 +83,16 @@ class Renderer
 
   def detach(shape)
     @shapes.delete(shape.object_id)
+  end
+
+protected
+
+  def recalculate_scale_multiplier
+    @scale_multiplier = @screen_size.to_f / @world_size * @zoom_multiplier
+  end
+
+  def recompute_shapes
+    @shapes.values.each(&:recompute)
   end
 end
 
