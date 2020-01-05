@@ -8,35 +8,35 @@ class Vehicle
   TURN_RATE = 4.0/3.0
   COLLISION_RADIUS = 5
 
-  attr_reader :scale_factor
+  attr_reader :renderer
   attr_reader :position, :player, :direction, :velocity, :angular_velocity
   attr_reader :dead, :circle, :line
 
-  def initialize(position, player, direction: rand * Math::PI * 2, scale_factor: 1.0)
+  def initialize(position, player, renderer, direction: rand * Math::PI * 2)
     @position = position
     @player = player
     @direction = direction
-    @scale_factor = scale_factor
+    @renderer = renderer
     @velocity = 0.0
     @angular_velocity = 0.0
     @dead = false
 
     return if HEADLESS
-    @circle = Circle.new(
-      x: (@position[0] - 2.5) * @scale_factor,
-      y: (@position[1] - 2.5) * @scale_factor,
-      radius: @scale_factor * 5,
+    @circle = @renderer.circle(
+      x: @position[0] - 2.5,
+      y: @position[1] - 2.5,
+      radius: 5,
       color: @player.color,
       segments: 20,
       z: 2,
     )
-    v = vector_from_magnitude_and_direction(@scale_factor * 5.0, @direction)
-    @line = Line.new(
-      x1: @position[0] * @scale_factor,
-      y1: @position[1] * @scale_factor,
-      x2: @position[0] * @scale_factor + v[0],
-      y2: @position[1] * @scale_factor + v[1],
-      width: 3 * @scale_factor,
+    v = vector_from_magnitude_and_direction(5.0, @direction)
+    @line = @renderer.line(
+      x1: @position[0],
+      y1: @position[1],
+      x2: @position[0] + v[0],
+      y2: @position[1] + v[1],
+      width: 3,
       color: 'black',
       z: 2,
     )
@@ -49,14 +49,13 @@ class Vehicle
     @line.remove
   end
 
-  def construct_structure(structure_class, *args, **kargs)
+  def construct_structure(structure_class, **kargs)
     return false if @dead
     kill
     structure = structure_class.new(
       @position,
-      *args,
-      player: @player,
-      scale_factor: @scale_factor,
+      @player,
+      @renderer,
       **kargs
     )
     structure.heal(:vehicle_repair)
@@ -96,14 +95,14 @@ class Vehicle
   def render
     return if @dead
 
-    @circle.x = @position[0] * @scale_factor
-    @circle.y = @position[1] * @scale_factor
+    @circle.x = @position[0]
+    @circle.y = @position[1]
 
-    v = vector_from_magnitude_and_direction(@scale_factor * 5.0, @direction)
-    @line.x1 = @position[0] * @scale_factor
-    @line.y1 = @position[1] * @scale_factor
-    @line.x2 = @position[0] * @scale_factor + v[0]
-    @line.y2 = @position[1] * @scale_factor + v[1]
+    v = vector_from_magnitude_and_direction(5.0, @direction)
+    @line.x1 = @position[0]
+    @line.y1 = @position[1]
+    @line.x2 = @position[0] + v[0]
+    @line.y2 = @position[1] + v[1]
   end
 
   def collided_with_vehicle?(other_vehicle)

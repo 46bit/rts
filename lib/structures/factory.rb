@@ -49,7 +49,7 @@ class Factory < BuildableStructure
       unit = @unit.new(
         @position,
         @player,
-        scale_factor: @scale_factor,
+        @renderer,
       )
       @unit = nil
     end
@@ -58,42 +58,42 @@ class Factory < BuildableStructure
   end
 
   def prerender
-    @outline = Square.new(
-      x: scale(@position[0] - 9.5),
-      y: scale(@position[1] - 9.5),
-      size: scale(19),
+    @outline = @renderer.square(
+      x: @position[0] - 9.5,
+      y: @position[1] - 9.5,
+      size: 19,
       color: @player.color,
       z: 1,
     )
-    @square = Square.new(
-      x: scale(@position[0] - 7.5),
-      y: scale(@position[1] - 7.5),
-      size: scale(15),
+    @square = @renderer.square(
+      x: @position[0] - 7.5,
+      y: @position[1] - 7.5,
+      size: 15,
       color: 'black',
       z: 2,
     )
-    @progress_square = Square.new(
-      x: scale(@position[0] - 7.5),
-      y: scale(@position[1] - 7.5),
-      size: scale(15),
+    @progress_square = @renderer.square(
+      x: @position[0] - 7.5,
+      y: @position[1] - 7.5,
+      size: 15,
       color: @player.color,
       opacity: 0.0,
       z: 3,
     )
-    @health_bar = Line.new(
-      x1: scale(@position[0] - 9.5),
-      y1: scale(@position[1] + 11),
-      x2: scale(@position[0] + 9.5),
-      y2: scale(@position[1] + 11),
-      width: scale(1.5),
+    @health_bar = @renderer.line(
+      x1: @position[0] - 9.5,
+      y1: @position[1] + 11,
+      x2: @position[0] + 9.5,
+      y2: @position[1] + 11,
+      width: 1.5,
       color: @player.color,
       z: 2,
     )
   end
 
   def render
-    @health_bar.x2 = scale(@position[0] - 9.5 + 19 * healthyness)
-    @health_bar.width = healthyness > 0.5 ? scale(1.5) : scale(2)
+    @health_bar.x2 = @position[0] - 9.5 + 19 * healthyness
+    @health_bar.width = healthyness > 0.5 ? 1.5 : 2
 
     @outline.opacity = @built ? 1.0 : (0.2 + healthyness * 0.8)
     @progress_square.opacity = @unit.nil? ? 0.0 : (0.1 + unit_progress * 0.9)

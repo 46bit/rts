@@ -2,16 +2,16 @@ require 'matrix'
 require_relative './structures/turret'
 require_relative './structures/factory'
 
-def ai_from_string(name, world_size, scale_factor, generators)
+def ai_from_string(name, world_size, generators)
   case name
   when "guard_nearest_ai"
     GuardNearestAI.new
   when "attack_nearest_ai"
     AttackNearestAI.new
   when "spam_structures_ai"
-    SpamStructuresAI.new(world_size, scale_factor)
+    SpamStructuresAI.new(world_size)
   when "build_factory_at_centre_then_attack_ai"
-    BuildFactoryAtCentreThenAttackAI.new(generators, scale_factor)
+    BuildFactoryAtCentreThenAttackAI.new(generators)
   when "kill_factories_ai"
     KillFactoriesAI.new
   end
@@ -67,9 +67,8 @@ class AttackNearestAI
 end
 
 class SpamStructuresAI < GuardNearestAI
-  def initialize(world_size, scale_factor, proportion_of_turret_constructions: 0.5)
+  def initialize(world_size, proportion_of_turret_constructions: 0.5)
     @world_size = world_size
-    @scale_factor = scale_factor
     @proportion_of_turret_constructions = proportion_of_turret_constructions
     @targets = {}
     @constructions = []
@@ -102,7 +101,7 @@ class SpamStructuresAI < GuardNearestAI
   end
 
   def update(generators, player, other_players)
-    return super if generators.select { |g| g.owner?(player) }.length < [1, player.vehicles.length / 2].max
+    return super if generators.select { |g| g.owner?(player) }.length < [1, player.vehicles.length / 5].max
 
     player.vehicles.each do |vehicle|
       next if vehicle.dead
@@ -146,8 +145,7 @@ class SpamStructuresAI < GuardNearestAI
 end
 
 class BuildFactoryAtCentreThenAttackAI < AttackNearestAI
-  def initialize(generators, scale_factor)
-    @scale_factor = scale_factor
+  def initialize(generators)
     average_generator_x = generators.map(&:position).map { |p| p[0] }.sum.to_f / generators.length
     average_generator_y = generators.map(&:position).map { |p| p[1] }.sum.to_f / generators.length
     @target = Vector[average_generator_x, average_generator_y]

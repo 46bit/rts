@@ -5,23 +5,23 @@ class Projectile
   MAXIMUM_RANGE = 180
   COLLISION_RADIUS = 4
 
-  attr_reader :position, :direction, :velocity, :scale_factor
+  attr_reader :position, :direction, :velocity, :renderer
   attr_reader :dead, :start_position, :circle, :damage_type
 
-  def initialize(position, direction, color, scale_factor: 1.0, damage_type: :projectile_collision)
+  def initialize(position, direction, color, renderer, damage_type: :projectile_collision)
     @position = position
     @start_position = position
     @direction = direction
-    @scale_factor = scale_factor
+    @renderer = renderer
     @damage_type = damage_type
-    @velocity = MOVEMENT_RATE * @scale_factor
+    @velocity = MOVEMENT_RATE
     @dead = false
 
     return if HEADLESS
-    @circle = Circle.new(
-      x: (@position[0] - 1.5) * @scale_factor,
-      y: (@position[1] - 1.5) * @scale_factor,
-      radius: scale_factor * 3,
+    @circle = @renderer.circle(
+      x: @position[0] - 1.5,
+      y: @position[1] - 1.5,
+      radius: 3,
       color: color,
       opacity: 0.7,
       z: 5,
@@ -45,7 +45,7 @@ class Projectile
   def render
     return if @dead
 
-    @circle.x = @position[0] * @scale_factor
-    @circle.y = @position[1] * @scale_factor
+    @circle.x = @position[0]
+    @circle.y = @position[1]
   end
 end

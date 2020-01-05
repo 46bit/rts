@@ -4,12 +4,12 @@ require_relative '../entities/projectile'
 class Structure
   COLLISION_RADIUS = 1
 
-  attr_reader :position, :player, :scale_factor
+  attr_reader :position, :player, :renderer
 
-  def initialize(position, player: nil, scale_factor: 1.0)
+  def initialize(position, player, renderer)
     @position = position
     @player = player
-    @scale_factor = scale_factor
+    @renderer = renderer
   end
 
   def collided?(object)
@@ -35,9 +35,5 @@ class Structure
   end
 
   def render
-  end
-
-  def scale(coordinate)
-    coordinate * @scale_factor
   end
 end

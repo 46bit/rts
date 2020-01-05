@@ -14,8 +14,8 @@ game = Game.from_config(config, screen_size: 800)
 
 set(
   title: 'github.com/46bit/rts',
-  width: game.screen_size,
-  height: game.screen_size,
+  width: game.renderer.screen_size,
+  height: game.renderer.screen_size,
 )
 
 update do
@@ -23,11 +23,23 @@ update do
   game.render
 end
 
-# on :mouse_down do |event|
-#   # puts event.x, event.y
-#   if event.button == :left
-#     players[0].factory.construct_new
-#   end
-# end
+on :mouse_scroll do |event|
+  game.renderer.zoom(event.delta_y > 0) unless event.delta_y.zero?
+end
+
+on :key_held do |event|
+  case event.key
+  when "left"
+    game.renderer.move(-5, 0)
+  when "right"
+    game.renderer.move(5, 0)
+  when "up"
+    game.renderer.move(0, -5)
+  when "down"
+    game.renderer.move(0, 5)
+  else
+    puts "unrecognised key: #{event.key}"
+  end
+end
 
 show

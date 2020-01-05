@@ -1,37 +1,35 @@
 require 'matrix'
 require_relative './structures/generator'
 require_relative './structures/factory'
+require_relative './render'
 require_relative './player'
 require_relative './ai'
 
 class Game
   def self.from_config(config, screen_size: 800)
-    scale_factor = screen_size.to_f / config.fetch("world_size")
+    renderer = Renderer.new(screen_size, config.fetch("world_size"))
+
     generators = config.fetch("generators").map do |generator_config|
-      Generator::from_config(generator_config, scale_factor)
+      Generator::from_config(generator_config, renderer)
     end
     players = config.fetch("players").map do |player_config|
-      Player::from_config(player_config, config.fetch("unit_cap"), scale_factor, generators)
+      Player::from_config(player_config, config.fetch("unit_cap"), renderer, generators)
     end
     return Game.new(
-      config.fetch("world_size"),
-      screen_size,
+      renderer,
       generators,
       players,
       sandbox: config.fetch("sandbox", false),
-      scale_factor: scale_factor,
     )
   end
 
-  attr_reader :screen_size, :generators, :players, :sandbox, :winner
+  attr_reader :renderer, :generators, :players, :sandbox, :winner
 
-  def initialize(world_size, screen_size, generators, players, sandbox: false, scale_factor: 1.0)
-    @world_size = world_size
-    @screen_size = screen_size
+  def initialize(renderer, generators, players, sandbox: false)
+    @renderer = renderer
     @generators = generators
     @players = players
     @sandbox = sandbox
-    @scale_factor = scale_factor
     @winner = false
   end
 
@@ -66,11 +64,11 @@ class Game
       unless @label
         puts "#{@winner} wins!"
         exit 0 if HEADLESS
-        @label = Text.new(
+        @label = @renderer.text(
           "#{@winner} wins!",
-          x: @world_size / 2 * @scale_factor,
-          y: @world_size / 2 * @scale_factor,
-          size: 100 * @scale_factor,
+          x: @renderer.world_size / 2,
+          y: @renderer.world_size / 2,
+          size: 100,
           color: 'white',
           z: 10,
         )

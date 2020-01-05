@@ -36,35 +36,35 @@ class Turret < BuildableStructure
           @position,
           projectile_angle,
           @player.color,
-          scale_factor: @scale_factor
+          @renderer,
         )
       end
     end
   end
 
   def prerender
-    @circle = Circle.new(
-      x: scale(@position[0] - 2.5),
-      y: scale(@position[1] - 2.5),
-      radius: scale(5),
+    @circle = @renderer.circle(
+      x: @position[0] - 2.5,
+      y: @position[1] - 2.5,
+      radius: 5,
       color: @player.color,
       opacity: @built ? 1.0 : (0.2 + healthyness * 0.8),
       segments: 20,
       z: 2,
     )
-    @health_bar = Line.new(
-      x1: scale(@position[0] - 7.5),
-      y1: scale(@position[1] + 4.5),
-      x2: scale(@position[0] + 2.5),
-      y2: scale(@position[1] + 4.5),
-      width: scale(1.5),
+    @health_bar = @renderer.line(
+      x1: @position[0] - 7.5,
+      y1: @position[1] + 4.5,
+      x2: @position[0] + 2.5,
+      y2: @position[1] + 4.5,
+      width: 1.5,
       color: @player.color,
       z: 2,
     )
-    # @range_circle = Circle.new(
-    #   x: scale(@position[0] - 1.5),
-    #   y: scale(@position[1] - 1.5),
-    #   radius: scale(Projectile::MAXIMUM_RANGE),
+    # @range_circle = @renderer.circle(
+    #   x: @position[0] - 1.5,
+    #   y: @position[1] - 1.5,
+    #   radius: Projectile::MAXIMUM_RANGE,
     #   color: @player.color,
     #   opacity: 0.1,
     #   z: 0,
@@ -74,8 +74,8 @@ class Turret < BuildableStructure
   def render
     @circle.opacity = @built ? 1.0 : (0.2 + healthyness * 0.8)
 
-    @health_bar.x2 = scale(@position[0] - 7.5 + 10 * healthyness)
-    @health_bar.width = healthyness > 0.5 ? scale(1.5) : scale(2)
+    @health_bar.x2 = @position[0] - 7.5 + 10 * healthyness
+    @health_bar.width = healthyness > 0.5 ? 1.5 : 2
     if damaged?
       @health_bar.add
     else

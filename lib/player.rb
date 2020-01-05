@@ -1,30 +1,30 @@
 require_relative './ai'
 
 class Player
-  def self.from_config(player_config, unit_cap, scale_factor, generators)
+  def self.from_config(player_config, unit_cap, renderer, generators)
     # FIXME: generators shouldn't be passed here. rethink the AI structure.
-    ai = ai_from_string(player_config["control"], 800 / scale_factor, scale_factor, generators)
+    ai = ai_from_string(player_config["control"], renderer.world_size, generators)
     raise "no AI found for player configured to use '#{player_config["control"]}'" unless ai
-    player = Player.new(player_config["color"], ai, scale_factor: scale_factor, unit_cap: unit_cap)
+    player = Player.new(player_config["color"], ai, renderer, unit_cap: unit_cap)
     player.factories << Factory.new(
       Vector[
         player_config["x"],
         player_config["y"]
       ],
-      player: player,
-      scale_factor: scale_factor,
+      player,
+      renderer,
       built: true,
     )
     return player
   end
 
-  attr_reader :color, :control, :unit_cap, :base_generation_capacity, :score, :scale_factor
+  attr_reader :color, :control, :unit_cap, :base_generation_capacity, :score, :renderer
   attr_accessor :factories, :vehicles, :turrets, :projectiles
 
-  def initialize(color, control, scale_factor: 1.0, unit_cap: Float::INFINITY, base_generation_capacity: 1.0)
+  def initialize(color, control, renderer, unit_cap: Float::INFINITY, base_generation_capacity: 1.0)
     @color = color
     @control = control
-    @scale_factor = scale_factor
+    @renderer = renderer
     @unit_cap = unit_cap
     @base_generation_capacity = base_generation_capacity
     @factories = []
@@ -68,17 +68,17 @@ class Player
     oldest_factory = @factories[0]
     if oldest_factory
       if @stats_text.nil?
-        @stats_text = Text.new(
+        @stats_text = @renderer.text(
           "",
-          size: 8 * oldest_factory.scale_factor,
+          size: 8,
           color: @color,
           z: 2,
         )
       end
       pretty_build_capacity = @latest_build_capacity == @latest_build_capacity.to_i ? @latest_build_capacity.to_i : @latest_build_capacity
       @stats_text.text = "#{unit_count}/#{@unit_cap} +#{pretty_build_capacity}"
-      @stats_text.x = (oldest_factory.position[0] - 9.5) * oldest_factory.scale_factor
-      @stats_text.y = (oldest_factory.position[1] + 14) * oldest_factory.scale_factor
+      @stats_text.x = (oldest_factory.position[0] - 9.5)
+      @stats_text.y = (oldest_factory.position[1] + 14)
     else
       @stats_text.remove unless @stats_text.nil?
       @stats_text = nil
