@@ -90,5 +90,6 @@ class RenderShape
   def add
     @shape.add
     @renderer.attach(self)
+    recompute
   end
 end
