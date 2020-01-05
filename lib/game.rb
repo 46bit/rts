@@ -42,7 +42,6 @@ class Game
     remove_killed_vehicles
     remove_killed_factories
 
-    @generators.each(&:render) unless HEADLESS
     @players.each do |player|
       # FIXME: Reallow control over creating new units?
       player.factories.each(&:construct)
@@ -50,6 +49,9 @@ class Game
     end
     remove_killed_vehicles
     remove_killed_projectiles
+
+    dead_players = @players.select { |p| p.unit_count.zero? }
+    @generators.select { |p| dead_players.include?(p) }.each { |g| g.player = nil }
 
     check_for_winner unless @sandbox || @winner
   end
