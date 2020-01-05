@@ -4,10 +4,10 @@ require_relative '../utils'
 
 class Turret < BuildableStructure
   COLLISION_RADIUS = 5
-  MAX_HEALTH = 40
-  FIRING_RATE = 80
+  MAX_HEALTH = 300
+  FIRING_RATE = 5
 
-  attr_reader :update_counter, :circle
+  attr_reader :update_counter, :square, :quad, :health_bar
 
   def initialize(*)
     super
