@@ -53,11 +53,12 @@ class AttackNearestAI
       next if vehicle.dead
 
       target = targets.min_by { |t| (t.position - vehicle.position).magnitude }
+      randomness = target.class == Turret ? 0.7 : 0.2
       if target.nil?
         vehicle.update(accelerate_mode: "")
-      elsif vehicle.turn_left_to_reach?(target.position) && rand > 0.2
+      elsif vehicle.turn_left_to_reach?(target.position) && rand > randomness
         vehicle.update(accelerate_mode: "forward_and_left")
-      elsif vehicle.turn_right_to_reach?(target.position) && rand > 0.2
+      elsif vehicle.turn_right_to_reach?(target.position) && rand > randomness
         vehicle.update(accelerate_mode: "forward_and_right")
       else
         vehicle.update(accelerate_mode: "forward")
@@ -85,7 +86,7 @@ class DefensiveAI < AttackNearestAI
     interesting_structures = []
     if player.turrets.length < 10
       interesting_structures += player.factories + player.turrets
-    else
+    elsif !enemy_vehicle_positions.empty?
       interesting_structures += player.factories.select do |f|
         nearest_enemy_vehicle = enemy_vehicle_positions.min_by { |v| (v - f.position).magnitude }
         (nearest_enemy_vehicle - f.position).magnitude < 45
@@ -136,7 +137,8 @@ class DefensiveAI < AttackNearestAI
   end
 
   def update(generators, player, other_players)
-    return super if generators.select { |g| g.owner?(player) }.length < [1, player.vehicles.length / 5].max
+    return super if player.turrets.length == 0 && generators.select { |g| g.owner?(player) }.length < 5
+    return super if generators.select { |g| g.owner?(player) }.length < [[player.turrets.select { |t| t.built }.length, 2].min, player.vehicles.length / 5].max
 
     player.vehicles.each do |vehicle|
       next if vehicle.dead
@@ -150,7 +152,7 @@ class DefensiveAI < AttackNearestAI
 
       if vehicle_target.class == Vector && (vehicle_target - vehicle.position).magnitude < 10
         #puts "#{player.color}: constructing at #{target_position}"
-        structure_type = rand > @proportion_of_turret_constructions || player.factories.length > 1 ? Turret : Factory
+        structure_type = player.turrets.length == 0 || rand > @proportion_of_turret_constructions || player.factories.length > 1 ? Turret : Factory
         structure = vehicle.construct_structure(structure_type)
         case structure
         when Turret
@@ -187,7 +189,7 @@ class BuildFactoryAtCentreThenAttackAI < AttackNearestAI
   end
 
   def update(generators, player, other_players)
-    return super if !@target || generators.select { |g| g.owner?(player) }.length == 0
+    return super if !@target || generators.select { |g| g.owner?(player) }.length < 2 || (@target.class != Vector && @target.dead)
 
     player.vehicles.each do |vehicle|
       next if vehicle.dead
