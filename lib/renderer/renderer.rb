@@ -1,4 +1,6 @@
-require_relative './render_shape'
+require_relative './shapes'
+require_relative './star'
+require_relative './teardrop'
 
 class Renderer
   attr_reader :screen_size, :world_size, :scale_multiplier, :shapes
@@ -35,6 +37,14 @@ class Renderer
 
   def text(text, **kargs)
     RenderText.new(self, text, **kargs)
+  end
+
+  def star(**kargs)
+    RenderStar.new(self, **kargs)
+  end
+
+  def teardrop(**kargs)
+    RenderTeardrop.new(self, **kargs)
   end
 
   def move(dx, dy)
@@ -97,68 +107,5 @@ protected
 
   def recompute_shapes
     @shapes.values.each(&:recompute)
-  end
-end
-
-class RenderCircle < RenderShape
-  SHAPE = Circle
-  attr_shape_x :x
-  attr_shape_y :y
-  attr_shape_distance :radius
-  attr_shape_static :z, :sectors, :color, :opacity
-end
-
-class RenderTriangle < RenderShape
-  SHAPE = Triangle
-  attr_shape_x :x1, :x2, :x3
-  attr_shape_y :y1, :y2, :y3
-  attr_shape_static :z, :color, :opacity
-end
-
-class RenderSquare < RenderShape
-  SHAPE = Square
-  attr_shape_x :x
-  attr_shape_y :y
-  attr_shape_distance :size
-  attr_shape_static :z, :color, :opacity
-end
-
-class RenderQuad < RenderShape
-  SHAPE = Quad
-  attr_shape_x :x1, :x2, :x3, :x4
-  attr_shape_y :y1, :y2, :y3, :y4
-  attr_shape_static :z, :color, :opacity
-end
-
-class RenderLine < RenderShape
-  SHAPE = Line
-  attr_shape_x :x1, :x2
-  attr_shape_y :y1, :y2
-  attr_shape_distance :width
-  attr_shape_static :z, :color, :opacity
-end
-
-class RenderText < RenderShape
-  SHAPE = Text
-  attr_shape_x :x
-  attr_shape_y :y
-  attr_shape_distance :size
-  # FIXME: width and height are readonly
-  attr_shape_static :z, :color, :opacity, :width, :height, :text
-
-  def align_centre
-    @align_centre = true
-    @shape.x -= @shape.width / 2.0
-  end
-
-  def align_middle
-    @align_middle = true
-    @shape.y -= @shape.height / 2.0
-  end
-
-  def recompute
-    super
-    align_centre if @align_centre
-    align_middle if @align_middle
   end
 end

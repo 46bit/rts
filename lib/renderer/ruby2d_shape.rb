@@ -1,6 +1,4 @@
-require 'set'
-
-class RenderShape
+class Ruby2DShape
   def self.attr_shape_static(*attr_names)
     attr_names.each do |attr_name|
       self.define_method("#{attr_name}") do

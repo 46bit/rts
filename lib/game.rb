@@ -1,7 +1,7 @@
 require 'matrix'
 require_relative './structures/generator'
 require_relative './structures/factory'
-require_relative './renderer'
+require_relative './renderer/renderer'
 require_relative './player'
 require_relative './ai'
 
