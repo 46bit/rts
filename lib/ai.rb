@@ -8,8 +8,8 @@ def ai_from_string(name, world_size, generators)
     GuardNearestAI.new
   when "attack_nearest_ai"
     AttackNearestAI.new
-  when "spam_structures_ai"
-    SpamStructuresAI.new(world_size)
+  when "defensive_ai"
+    DefensiveAI.new(world_size)
   when "build_factory_at_centre_then_attack_ai"
     BuildFactoryAtCentreThenAttackAI.new(generators)
   when "kill_factories_ai"
@@ -66,7 +66,7 @@ class AttackNearestAI
   end
 end
 
-class SpamStructuresAI < GuardNearestAI
+class DefensiveAI < AttackNearestAI
   def initialize(world_size, proportion_of_turret_constructions: 0.5)
     @world_size = world_size
     @proportion_of_turret_constructions = proportion_of_turret_constructions
@@ -75,21 +75,56 @@ class SpamStructuresAI < GuardNearestAI
   end
 
   def target(vehicle, generators, player, other_players)
-    return @targets[vehicle.object_id] if @targets[vehicle.object_id]
+    return @targets[vehicle.object_id] if @targets[vehicle.object_id] && (@targets[vehicle.object_id].class == Vector || !@targets[vehicle.object_id].dead)
 
     nearest_construction = @constructions.min_by { |c| (c.position - vehicle.position).magnitude }
     return nearest_construction if nearest_construction
 
+    enemy_vehicle_positions = other_players.map(&:vehicles).flatten.map(&:position)
+
+    interesting_structures = []
+    if player.turrets.length < 10
+      interesting_structures += player.factories + player.turrets
+    else
+      interesting_structures += player.factories.select do |f|
+        nearest_enemy_vehicle = enemy_vehicle_positions.min_by { |v| (v - f.position).magnitude }
+        (nearest_enemy_vehicle - f.position).magnitude < 45
+      end
+      interesting_structures += player.turrets.select do |t|
+        nearest_enemy_vehicle = enemy_vehicle_positions.min_by { |v| (v - t.position).magnitude }
+        (nearest_enemy_vehicle - t.position).magnitude < 45
+      end
+      combat_focus = true unless interesting_structures.empty?
+    end
+    interesting_structures += player.factories + player.turrets if interesting_structures.empty?
+    interesting_structures += player.vehicles if interesting_structures.empty?
+
+    nearest_structure = interesting_structures.min_by { |s| (s.position - vehicle.position).magnitude }
+    range = combat_focus ? 40 : 200
     new_construction = Vector[
-      (0.1 + 0.8 * rand) * @world_size,
-      (0.1 + 0.8 * rand) * @world_size,
+      nearest_structure.position[0] + (rand - 0.5) * [0.3 * @world_size, range].min,
+      nearest_structure.position[1] + (rand - 0.5) * [0.3 * @world_size, range].min,
     ]
+
+    unless combat_focus
+      avg_enemy_vehicle_position = Vector[
+        enemy_vehicle_positions.map { |p| p[0] }.sum / [enemy_vehicle_positions.length, 1].max,
+        enemy_vehicle_positions.map { |p| p[1] }.sum / [enemy_vehicle_positions.length, 1].max,
+      ]
+      weigh_enemy_positions = player.turrets.length > 10 ? 0.4 : 0.1
+      new_construction = new_construction * (1.0 - weigh_enemy_positions) + avg_enemy_vehicle_position * weigh_enemy_positions
+    end
+
+    #new_construction = Vector[
+    #  (0.1 + 0.8 * rand) * @world_size,
+    #  (0.1 + 0.8 * rand) * @world_size,
+    #]
     return new_construction if reasonable_target?(new_construction, generators, player, other_players)
   end
 
   def reasonable_target?(target, generators, player, other_players)
     all_factories = player.factories + other_players.map(&:factories).flatten
-    all_structures = generators + all_factories
+    all_structures = generators + all_factories + other_players.map(&:vehicles).flatten
     reasonable = true
     all_structures.each do |structure|
       if (structure.position - target).magnitude < 30
@@ -115,7 +150,7 @@ class SpamStructuresAI < GuardNearestAI
 
       if vehicle_target.class == Vector && (vehicle_target - vehicle.position).magnitude < 10
         #puts "#{player.color}: constructing at #{target_position}"
-        structure_type = rand > @proportion_of_turret_constructions ? Turret : Factory
+        structure_type = rand > @proportion_of_turret_constructions || player.factories.length > 1 ? Turret : Factory
         structure = vehicle.construct_structure(structure_type)
         case structure
         when Turret
