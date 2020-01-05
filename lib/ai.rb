@@ -223,8 +223,8 @@ end
 
 class KillFactoriesAI
   def update(generators, player, other_players)
-    top_player = other_players.max_by(&:unit_count)
-    targets = top_player.factories if top_player
+    weakest_player = other_players.min_by(&:unit_count)
+    targets = weakest_player.factories if weakest_player
     targets = generators + player.factories + player.turrets if targets.empty?
     player.vehicles.each do |vehicle|
       next if vehicle.dead
