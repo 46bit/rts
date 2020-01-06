@@ -11,6 +11,7 @@ raise "config path not specified" if config_path.nil?
 raise "config path not found" unless File.exists?(config_path)
 config = YAML.safe_load(File.read(config_path))
 game = Game.from_config(config, screen_size: 800)
+camera = SimpleCamera.new(game.renderer)
 
 set(
   title: 'github.com/46bit/rts',
@@ -24,19 +25,19 @@ update do
 end
 
 on :mouse_scroll do |event|
-  game.renderer.zoom(event.delta_y > 0) unless event.delta_y.zero?
+  camera.zoom(event.delta_y > 0) unless event.delta_y.zero?
 end
 
 on :key_held do |event|
   case event.key
   when "left"
-    game.renderer.move(-5, 0)
+    camera.move(-5, 0)
   when "right"
-    game.renderer.move(5, 0)
+    camera.move(5, 0)
   when "up"
-    game.renderer.move(0, -5)
+    camera.move(0, -5)
   when "down"
-    game.renderer.move(0, 5)
+    camera.move(0, 5)
   end
 end
 

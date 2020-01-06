@@ -1,17 +1,19 @@
 require_relative './shapes'
 require_relative './star'
 require_relative './teardrop'
+require_relative './camera'
 
 class Renderer
   attr_reader :screen_size, :world_size, :scale_multiplier, :shapes
+  attr_accessor :centre_x, :centre_y, :zoom_multiplier
 
   def initialize(screen_size, world_size)
     @screen_size = screen_size
     @world_size = world_size
     @centre_x = 0
     @centre_y = 0
-    @zoom_multiplier = 1.0
     @shapes = {}
+    @zoom_multiplier = 1.0
     recalculate_scale_multiplier
   end
 
@@ -47,24 +49,6 @@ class Renderer
     RenderTeardrop.new(self, **kargs)
   end
 
-  def move(dx, dy)
-    @centre_x += dx
-    @centre_y += dy
-    recompute_shapes
-  end
-
-  def zoom(in_or_out)
-    centre_of_screen_before_x = unapply(:x, @screen_size / 2)
-    centre_of_screen_before_y = unapply(:y, @screen_size / 2)
-    @zoom_multiplier *= in_or_out ? 1.1 : 0.9
-    recalculate_scale_multiplier
-    centre_of_screen_after_x = unapply(:x, @screen_size / 2)
-    centre_of_screen_after_y = unapply(:y, @screen_size / 2)
-    @centre_x += (centre_of_screen_before_x - centre_of_screen_after_x)
-    @centre_y += (centre_of_screen_before_y - centre_of_screen_after_y)
-    recompute_shapes
-  end
-
   def apply(type, value)
     case type
     when :distance
@@ -98,8 +82,6 @@ class Renderer
   def detach(shape)
     @shapes.delete(shape.object_id)
   end
-
-protected
 
   def recalculate_scale_multiplier
     @scale_multiplier = @screen_size.to_f / @world_size * @zoom_multiplier
