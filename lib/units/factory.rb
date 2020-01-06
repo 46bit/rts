@@ -14,11 +14,9 @@ class Factory < Structure
     prerender unless HEADLESS
   end
 
-  def construct
+  def construct(unit_class)
     return unless @built
     if @unit.nil?
-      # FIXME: Player must choose unit composition
-      unit_class = Bot # rand > 0.5 ? Tank : Bot
       @unit = unit_class.new(
         @renderer,
         @position,

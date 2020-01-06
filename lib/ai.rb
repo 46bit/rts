@@ -1,4 +1,6 @@
 require 'matrix'
+require_relative './units/bot'
+require_relative './units/tank'
 require_relative './units/factory'
 require_relative './units/turret'
 
@@ -21,6 +23,8 @@ end
 # its units guard their nearest generators.
 class GuardNearestAI
   def update(generators, player, other_players)
+    player.factories.each { |f| f.construct(Bot) }
+
     targets = generators.reject { |g| g.owner?(player) }
     targets = generators if targets.empty?
     player.vehicles.each do |vehicle|
@@ -49,6 +53,14 @@ class AttackNearestAI
     targets += other_players.select { |p| p.vehicles.length <= player.vehicles.length / 4 }.map(&:factories).flatten
     targets = other_players.map(&:factories).flatten + other_players.map(&:vehicles).flatten + other_players.map(&:turrets).flatten if targets.empty?
     targets = generators + player.factories if targets.empty?
+
+    living_other_players = other_players.select { |p| p.unit_count > 0 }
+    if living_other_players.length == 1 && living_other_players[0].turrets.length > 1
+      player.factories.each { |f| f.construct(Tank) }
+    else
+      player.factories.each { |f| f.construct(Bot) }
+    end
+
     player.vehicles.each do |vehicle|
       next if vehicle.dead
 
@@ -76,6 +88,8 @@ class DefensiveAI < AttackNearestAI
   end
 
   def target(vehicle, generators, player, other_players)
+    player.factories.each { |f| f.construct(Bot) }
+
     return @targets[vehicle.object_id] if @targets[vehicle.object_id] && (@targets[vehicle.object_id].class == Vector || !@targets[vehicle.object_id].dead)
 
     nearest_construction = @constructions.reject {|c| c.dead}.min_by { |c| (c.position - vehicle.position).magnitude }
@@ -142,6 +156,8 @@ class DefensiveAI < AttackNearestAI
     return super if player.turrets.length == 0 && generators.select { |g| g.owner?(player) }.length < 5 && (other_players.max_by { |p| p.unit_count } == nil || other_players.max_by { |p| p.unit_count }.unit_count < player.unit_count * 2 )
     return super if generators.select { |g| g.owner?(player) }.length < [[player.turrets.select { |t| t.built }.length, 2].min, player.vehicles.length / 5].max
 
+    player.factories.each { |f| f.construct(Bot) }
+
     player.vehicles.each do |vehicle|
       next if vehicle.dead
 
@@ -193,6 +209,8 @@ class BuildFactoryAtCentreThenAttackAI < AttackNearestAI
   def update(generators, player, other_players)
     return super if !@target || generators.select { |g| g.owner?(player) }.length < 2 || (@target.class != Vector && @target.dead)
 
+    player.factories.each { |f| f.construct(Bot) }
+
     player.vehicles.each do |vehicle|
       next if vehicle.dead
 
@@ -223,6 +241,8 @@ end
 
 class KillFactoriesAI
   def update(generators, player, other_players)
+    player.factories.each { |f| f.construct(Bot) }
+
     weakest_player = other_players.min_by(&:unit_count)
     targets = weakest_player.factories if weakest_player
     targets = generators + player.factories + player.turrets if targets.empty?

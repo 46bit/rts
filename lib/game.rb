@@ -43,8 +43,6 @@ class Game
     remove_killed_factories
 
     @players.each do |player|
-      # FIXME: Reallow control over creating new units?
-      player.factories.each(&:construct)
       player.update(@generators, @players - [player])
     end
     remove_killed_vehicles
