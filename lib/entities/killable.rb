@@ -5,6 +5,10 @@ module Killable
     !!@dead
   end
 
+  def alive?
+    !@dead
+  end
+
   def kill
     @health = 0
     @dead = true

@@ -90,6 +90,10 @@ class Player
     @factories.length + @vehicles.length + @turrets.length
   end
 
+  def units
+    @factories + @vehicles + @turrets
+  end
+
   def build_capacity(generators)
     owned_generators = generators.select { |g| g.owner?(self) }
     owned_generation_capacity = owned_generators.map { |g| g.capacity }.sum

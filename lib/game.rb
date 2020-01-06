@@ -34,11 +34,11 @@ class Game
   end
 
   def update
-    kill_enemy_things_that_projectiles_collide_with
+    damage_enemy_things_that_projectiles_collide_with
     remove_killed_projectiles
     capture_generators_and_kill_capturing_vehicles
     remove_killed_vehicles
-    kill_colliding_vehicles_and_damage_collided_factories
+    damage_colliding_vehicles_and_structures
     remove_killed_vehicles
     remove_killed_factories
 
@@ -114,7 +114,7 @@ protected
     end
   end
 
-  def kill_enemy_things_that_projectiles_collide_with
+  def damage_enemy_things_that_projectiles_collide_with
     @players.product(@players).each do |player_1, player_2|
       next if player_1 == player_2
 
@@ -124,7 +124,7 @@ protected
         player_2.vehicles.each do |vehicle|
           if vehicle.collided?(projectile)
             kill_projectile = true
-            vehicle.kill
+            vehicle.damage(projectile.damage)
           end
         end
         player_2.factories.each do |factory|
@@ -145,22 +145,20 @@ protected
     end
   end
 
-  def kill_colliding_vehicles_and_damage_collided_factories
-    @players.product(@players).each do |player_1, player_2|
-      next if player_1 == player_2
-      player_1.vehicles.product(player_2.vehicles).each do |vehicle_1, vehicle_2|
-        vehicle_1.kill if vehicle_1.collided?(vehicle_2)
-      end
-      player_1.vehicles.product(player_2.factories).each do |vehicle, factory|
-        if factory.collided?(vehicle)
-          vehicle.kill
-          factory.damage(10)
-        end
-      end
-      player_1.vehicles.product(player_2.turrets).each do |vehicle, turret|
-        if turret.collided?(vehicle)
-          vehicle.kill
-          turret.damage(10)
+  def damage_colliding_vehicles_and_structures
+    orig_unit_health = Hash[@players.map(&:units).flatten.map { |v| [v.object_id, v.health] }]
+
+    @players.each do |player_1|
+      @players.each do |player_2|
+        next if player_1 == player_2
+        player_1.units.each do |unit_1|
+          hit_things = []
+          player_2.units.each do |unit_2|
+            hit_things << unit_2 if unit_2.alive? && unit_1.collided?(unit_2)
+          end
+          next if hit_things.empty?
+          damage_per_unit = orig_unit_health[unit_1.object_id] / hit_things.length
+          hit_things.each { |u| u.damage(damage_per_unit) }
         end
       end
     end
