@@ -13,7 +13,6 @@ class Bot < Vehicle
       player,
       max_health: 10,
       built: built,
-      health: built ? 10 : 0,
       direction: direction,
       movement_rate: 0.1,
       turn_rate: 4.0/3.0,

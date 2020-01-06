@@ -16,11 +16,11 @@ class Vehicle < Entity
   include Movable
   include Manoeuvrable
 
-  def initialize(renderer, position, player, max_health:, health: max_health, built: true, direction: rand * Math::PI * 2, physics: DEFAULT_PHYSICS, turn_rate: 1.0, movement_rate: 1.0, collision_radius:)
+  def initialize(renderer, position, player, max_health:, health: nil, built: true, direction: rand * Math::PI * 2, physics: DEFAULT_PHYSICS, turn_rate: 1.0, movement_rate: 1.0, collision_radius:)
     super(renderer, position)
     @player = player
     @max_health = max_health
-    @health = health
+    @health = health.nil? ? (built ? max_health : 0.0) : health
     @dead = false
     @built = built
     @velocity = 0.0

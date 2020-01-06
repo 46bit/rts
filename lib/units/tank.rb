@@ -3,16 +3,15 @@ require_relative '../entities/vehicle'
 class Tank < Vehicle
   RADIUS = 8.0
 
-  attr_reader :circle, :square, :line
+  attr_reader :circle, :square, :line, :health_bar
 
   def initialize(renderer, position, player, direction: rand * Math::PI * 2, built: true)
     super(
       renderer,
       position,
       player,
-      max_health: 60,
+      max_health: 200,
       built: built,
-      health: built ? 60 : 0,
       direction: direction,
       movement_rate: 0.05,
       turn_rate: 4.0/6.0,
@@ -27,6 +26,7 @@ class Tank < Vehicle
     @circle.remove
     @square.remove
     @line.remove
+    @health_bar.remove
   end
 
   def prerender
@@ -61,6 +61,15 @@ class Tank < Vehicle
       color: 'black',
       z: 2,
     )
+    @health_bar = @renderer.line(
+      x1: @position[0] - RADIUS,
+      y1: @position[1] + RADIUS + 3,
+      x2: @position[0] + RADIUS,
+      y2: @position[1] + RADIUS + 3,
+      width: 1.5,
+      color: @player.color,
+      z: 2,
+    )
   end
 
   def render
@@ -84,5 +93,16 @@ class Tank < Vehicle
     @line.y1 = @position[1]
     @line.x2 = @position[0] + vector_to_front_of_unit[0]
     @line.y2 = @position[1] + vector_to_front_of_unit[1]
+
+    @health_bar.x1 = @position[0] - RADIUS
+    @health_bar.y1 = @position[1] + RADIUS + 3
+    @health_bar.x2 = @position[0] - RADIUS + 2 * RADIUS * healthyness
+    @health_bar.y2 = @position[1] + RADIUS + 3
+    @health_bar.width = healthyness > 0.5 ? 1.5 : 2
+    if damaged?
+      @health_bar.add
+    else
+      @health_bar.remove
+    end
   end
 end
