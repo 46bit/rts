@@ -1,17 +1,35 @@
-require_relative './vehicle'
+require_relative '../entities/vehicle'
 
 class Tank < Vehicle
-  MOVEMENT_RATE = 0.05
-  TURN_RATE = 4.0/6.0
-  COLLISION_RADIUS = 8
   RADIUS = 8.0
 
   attr_reader :circle, :square, :line
 
-  def initialize(*)
-    super
+  def initialize(renderer, position, player, direction: rand * Math::PI * 2, built: true)
+    super(
+      renderer,
+      position,
+      player,
+      max_health: 60,
+      built: built,
+      health: built ? 60 : 0,
+      direction: direction,
+      movement_rate: 0.05,
+      turn_rate: 4.0/6.0,
+      collision_radius: 8.0,
+    )
+    prerender unless HEADLESS || !built
+  end
 
+  def kill
+    super
     return if HEADLESS
+    @circle.remove
+    @square.remove
+    @line.remove
+  end
+
+  def prerender
     @circle = @renderer.circle(
       x: @position[0],
       y: @position[1],
@@ -43,33 +61,6 @@ class Tank < Vehicle
       color: 'black',
       z: 2,
     )
-  end
-
-  def kill
-    super
-    return if HEADLESS
-    @circle.remove
-    @square.remove
-    @line.remove
-  end
-
-  def construct_structure(structure_class, **kargs)
-    return false if @dead
-    kill
-    structure = structure_class.new(
-      @position,
-      @player,
-      @renderer,
-      **kargs
-    )
-    structure.heal(:vehicle_repair)
-    return structure
-  end
-
-  def repair_structure(structure)
-    return false if @dead || !structure.collided?(self)
-    kill
-    structure.heal(:vehicle_repair)
   end
 
   def render

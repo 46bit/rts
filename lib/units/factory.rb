@@ -1,19 +1,16 @@
-require_relative './buildable'
-require_relative '../vehicles/bot'
-require_relative '../vehicles/tank'
+require_relative '../entities/structure'
+require_relative './bot'
+require_relative './tank'
 
-class Factory < BuildableStructure
-  MAX_HEALTH = 120
-  COLLISION_RADIUS = 15
-  UNIT_CONSTRUCTION_COST = 100
+class Factory < Structure
+  UNIT_HEALTH_PER_BUILD_CAPACITY = 0.1
 
   attr_reader :unit, :unit_investment
   attr_reader :outline, :square, :progress_square, :health_bar
 
-  def initialize(*)
-    super
-    @construction = nil
-
+  def initialize(renderer, position, player, built: true)
+    super(renderer, position, player, max_health: 120, built: built, health: built ? 120 : 0, collision_radius: 15)
+    @unit = nil
     prerender unless HEADLESS
   end
 
@@ -21,13 +18,19 @@ class Factory < BuildableStructure
     return unless @built
     if @unit.nil?
       # FIXME: Player must choose unit composition
-      @unit = rand > 0.5 ? Tank : Bot
+      unit_class = Bot # rand > 0.5 ? Tank : Bot
+      @unit = unit_class.new(
+        @renderer,
+        @position,
+        @player,
+        built: false,
+      )
       @unit_investment = 0
     end
   end
 
   def unit_progress
-    @unit_investment.to_f / UNIT_CONSTRUCTION_COST
+    @unit.healthyness
   end
 
   def kill
@@ -43,20 +46,16 @@ class Factory < BuildableStructure
   def update(build_capacity, can_produce: true)
     return if @dead || !@built || !@unit
 
-    @unit_investment += build_capacity
-    excess_build_capacity = [@unit_investment - UNIT_CONSTRUCTION_COST, 0].max
-
-    unit = nil
-    if @unit_investment >= UNIT_CONSTRUCTION_COST && can_produce
-      unit = @unit.new(
-        @position,
-        @player,
-        @renderer,
-      )
+    @unit.repair(build_capacity * UNIT_HEALTH_PER_BUILD_CAPACITY)
+    # FIXME: Reimplement excess_build_capacity when I start using it
+    # excess_build_capacity = [@unit_investment - UNIT_CONSTRUCTION_COST, 0].max
+    if can_produce && @unit.built?
+      built_unit = @unit
+      built_unit.prerender
       @unit = nil
+      return 0.0, built_unit
     end
-
-    return excess_build_capacity, unit
+    return 0.0, nil
   end
 
   def prerender

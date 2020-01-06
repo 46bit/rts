@@ -1,19 +1,16 @@
-require_relative './buildable'
-require_relative '../vehicles/projectile'
 require_relative '../utils'
+require_relative '../entities/structure'
+require_relative '../entities/projectile'
 
-class Turret < BuildableStructure
-  COLLISION_RADIUS = 5
-  MAX_HEALTH = 300
+class Turret < Structure
   FIRING_RATE = 5
   RADIUS = 5.0
 
   attr_reader :update_counter, :star, :health_bar
 
-  def initialize(*)
-    super
+  def initialize(renderer, position, player, built: true)
+    super(renderer, position, player, max_health: 300, built: built, health: built ? 300 : 0, collision_radius: 5)
     @update_counter = 0
-
     prerender unless HEADLESS
   end
 
@@ -33,11 +30,11 @@ class Turret < BuildableStructure
       projectile_angle = angle_to_nearest_enemy(enemies)
       unless projectile_angle.nil?
         @update_counter = 0
-        return Projectile.new(
+        return TurretProjectile.new(
+          @renderer,
           @position,
           projectile_angle,
-          @player.color,
-          @renderer,
+          @player,
         )
       end
     end
@@ -89,11 +86,20 @@ protected
     vector_to_nearest_enemy =
       enemies
         .map { |v| v.position - @position }
-        .reject { |d| d.magnitude >= Projectile::MAXIMUM_RANGE }
+        .reject { |d| d.magnitude >= TurretProjectile::RANGE }
         .min_by { |d| d.magnitude }
 
     unless vector_to_nearest_enemy.nil?
       return Math.atan2(vector_to_nearest_enemy[0], vector_to_nearest_enemy[1])
     end
+  end
+end
+
+class TurretProjectile < Projectile
+  RANGE = 180
+  DAMAGE = 10
+
+  def initialize(renderer, position, direction, player)
+    super(renderer, position, 3.5, direction, RANGE, DAMAGE, 6, 6, player.color, opacity: 0.7, collision_radius: 4)
   end
 end

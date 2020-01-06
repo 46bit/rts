@@ -1,6 +1,6 @@
 require 'matrix'
-require_relative './structures/turret'
-require_relative './structures/factory'
+require_relative './units/factory'
+require_relative './units/turret'
 
 def ai_from_string(name, world_size, generators)
   case name
@@ -28,13 +28,13 @@ class GuardNearestAI
 
       target = targets.min_by { |t| (t.position - vehicle.position).magnitude }
       if target.nil?
-        vehicle.update(accelerate_mode: "")
+        vehicle.update(:stop)
       elsif vehicle.turn_left_to_reach?(target.position) && rand > 0.2
-        vehicle.update(accelerate_mode: "forward_and_left")
+        vehicle.update(:turn_left)
       elsif vehicle.turn_right_to_reach?(target.position) && rand > 0.2
-        vehicle.update(accelerate_mode: "forward_and_right")
+        vehicle.update(:turn_right)
       else
-        vehicle.update(accelerate_mode: "forward")
+        vehicle.update(:forward)
       end
     end
   end
@@ -55,13 +55,13 @@ class AttackNearestAI
       target = targets.min_by { |t| (t.position - vehicle.position).magnitude }
       randomness = target.class == Turret ? 0.7 : 0.2
       if target.nil?
-        vehicle.update(accelerate_mode: "")
-      elsif vehicle.turn_left_to_reach?(target.position) && rand > randomness
-        vehicle.update(accelerate_mode: "forward_and_left")
-      elsif vehicle.turn_right_to_reach?(target.position) && rand > randomness
-        vehicle.update(accelerate_mode: "forward_and_right")
+        vehicle.update(:stop)
+      elsif vehicle.turn_left_to_reach?(target.position) && rand > randomness || rand < 0.1
+        vehicle.update(:turn_left)
+      elsif vehicle.turn_right_to_reach?(target.position) && rand > randomness || rand < 0.1
+        vehicle.update(:turn_right)
       else
-        vehicle.update(accelerate_mode: "forward")
+        vehicle.update(:forward)
       end
     end
   end
@@ -147,7 +147,7 @@ class DefensiveAI < AttackNearestAI
 
       vehicle_target = target(vehicle, generators, player, other_players)
       if vehicle_target.nil?
-        vehicle.update(accelerate_mode: "forward_and_left")
+        vehicle.update(:turn_left)
         next
       end
       target_position = vehicle_target.class == Vector ? vehicle_target : vehicle_target.position
@@ -173,11 +173,11 @@ class DefensiveAI < AttackNearestAI
           @constructions.delete(vehicle_target)
         end
       elsif vehicle.turn_left_to_reach?(target_position) && rand > 0.2
-        vehicle.update(accelerate_mode: "forward_and_left")
+        vehicle.update(:turn_left)
       elsif vehicle.turn_right_to_reach?(target_position) && rand > 0.2
-        vehicle.update(accelerate_mode: "forward_and_right")
+        vehicle.update(:turn_right)
       else
-        vehicle.update(accelerate_mode: "forward")
+        vehicle.update(:forward)
       end
     end
   end
@@ -211,11 +211,11 @@ class BuildFactoryAtCentreThenAttackAI < AttackNearestAI
         end
         break
       elsif vehicle.turn_left_to_reach?(target_position) && rand > 0.2
-        vehicle.update(accelerate_mode: "forward_and_left")
+        vehicle.update(:turn_left)
       elsif vehicle.turn_right_to_reach?(target_position) && rand > 0.2
-        vehicle.update(accelerate_mode: "forward_and_right")
+        vehicle.update(:turn_right)
       else
-        vehicle.update(accelerate_mode: "forward")
+        vehicle.update(:forward)
       end
     end
   end
@@ -231,13 +231,13 @@ class KillFactoriesAI
 
       target = targets.min_by { |t| (t.position - vehicle.position).magnitude }
       if target.nil?
-        vehicle.update(accelerate_mode: "")
+        vehicle.update(:stop)
       elsif vehicle.turn_left_to_reach?(target.position) && rand > 0.2
-        vehicle.update(accelerate_mode: "forward_and_left")
+        vehicle.update(:turn_left)
       elsif vehicle.turn_right_to_reach?(target.position) && rand > 0.2
-        vehicle.update(accelerate_mode: "forward_and_right")
+        vehicle.update(:turn_right)
       else
-        vehicle.update(accelerate_mode: "forward")
+        vehicle.update(:forward)
       end
     end
   end

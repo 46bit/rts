@@ -1,4 +1,4 @@
-VehiclePhysics = Struct.new(
+Physics = Struct.new(
   :mass,
   :power,
   :friction_coefficient,
@@ -29,6 +29,15 @@ VehiclePhysics = Struct.new(
     rolling_resistance_coefficient * normal_force
   end
 
+  def rolling_resistance_forces(velocity, angular_velocity)
+    per_unit = rolling_resistance.to_f / (velocity.abs + angular_velocity.abs)
+    return Vector[0, 0] if per_unit.infinite?
+    return Vector[
+      velocity * per_unit,
+      angular_velocity * per_unit,
+    ]
+  end
+
   def max_acceleration_force
     [power, grip].min
   end
@@ -38,7 +47,7 @@ VehiclePhysics = Struct.new(
   end
 end
 
-DEFAULT_VEHICLE_PHYSICS = VehiclePhysics.new(
+DEFAULT_PHYSICS = Physics.new(
   1.0,
   5.0,
   1.0,

@@ -8,12 +8,12 @@ class Player
     player = Player.new(player_config["color"], ai, renderer, unit_cap: unit_cap)
     player_config["factories"].each do |factory_config|
       player.factories << Factory.new(
+        renderer,
         Vector[
           factory_config["x"],
           factory_config["y"]
         ],
         player,
-        renderer,
         built: true,
       )
     end

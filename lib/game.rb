@@ -1,6 +1,6 @@
 require 'matrix'
-require_relative './structures/generator'
-require_relative './structures/factory'
+require_relative './units/generator'
+require_relative './units/factory'
 require_relative './renderer/renderer'
 require_relative './player'
 require_relative './ai'
@@ -124,7 +124,7 @@ protected
         # Projectiles can damage multiple things if they collide with them at the same time
         kill_projectile = false
         player_2.vehicles.each do |vehicle|
-          if vehicle.collided_with_projectile?(projectile)
+          if vehicle.collided?(projectile)
             kill_projectile = true
             vehicle.kill
           end
@@ -132,13 +132,13 @@ protected
         player_2.factories.each do |factory|
           if factory.collided?(projectile)
             kill_projectile = true
-            factory.damage(projectile.damage_type)
+            factory.damage(projectile.damage)
           end
         end
         player_2.turrets.each do |turret|
           if turret.collided?(projectile)
             kill_projectile = true
-            turret.damage(projectile.damage_type)
+            turret.damage(projectile.damage)
           end
         end
 
@@ -151,18 +151,18 @@ protected
     @players.product(@players).each do |player_1, player_2|
       next if player_1 == player_2
       player_1.vehicles.product(player_2.vehicles).each do |vehicle_1, vehicle_2|
-        vehicle_1.kill if vehicle_1.collided_with_vehicle?(vehicle_2)
+        vehicle_1.kill if vehicle_1.collided?(vehicle_2)
       end
       player_1.vehicles.product(player_2.factories).each do |vehicle, factory|
         if factory.collided?(vehicle)
           vehicle.kill
-          factory.damage :vehicle_collision
+          factory.damage(10)
         end
       end
       player_1.vehicles.product(player_2.turrets).each do |vehicle, turret|
         if turret.collided?(vehicle)
           vehicle.kill
-          turret.damage :vehicle_collision
+          turret.damage(10)
         end
       end
     end
