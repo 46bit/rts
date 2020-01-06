@@ -1,5 +1,6 @@
 require_relative './buildable'
-require_relative '../entities/vehicle'
+require_relative '../vehicles/bot'
+require_relative '../vehicles/tank'
 
 class Factory < BuildableStructure
   MAX_HEALTH = 120
@@ -19,7 +20,8 @@ class Factory < BuildableStructure
   def construct
     return unless @built
     if @unit.nil?
-      @unit = Vehicle
+      # FIXME: Player must choose unit composition
+      @unit = rand > 0.5 ? Tank : Bot
       @unit_investment = 0
     end
   end

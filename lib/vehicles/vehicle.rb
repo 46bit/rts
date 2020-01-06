@@ -4,13 +4,10 @@ require_relative '../utils'
 
 class Vehicle
   PHYSICS = DEFAULT_VEHICLE_PHYSICS
-  MOVEMENT_RATE = 0.1
-  TURN_RATE = 4.0/3.0
-  COLLISION_RADIUS = 5
 
   attr_reader :renderer
   attr_reader :position, :player, :direction, :velocity, :angular_velocity
-  attr_reader :dead, :circle, :line
+  attr_reader :dead
 
   def initialize(position, player, renderer, direction: rand * Math::PI * 2)
     @position = position
@@ -20,52 +17,10 @@ class Vehicle
     @velocity = 0.0
     @angular_velocity = 0.0
     @dead = false
-
-    return if HEADLESS
-    @circle = @renderer.circle(
-      x: @position[0] - 2.5,
-      y: @position[1] - 2.5,
-      radius: 5,
-      color: @player.color,
-      segments: 20,
-      z: 2,
-    )
-    v = vector_from_magnitude_and_direction(5.0, @direction)
-    @line = @renderer.line(
-      x1: @position[0],
-      y1: @position[1],
-      x2: @position[0] + v[0],
-      y2: @position[1] + v[1],
-      width: 3,
-      color: 'black',
-      z: 2,
-    )
   end
 
   def kill
     @dead = true
-    return if HEADLESS
-    @circle.remove
-    @line.remove
-  end
-
-  def construct_structure(structure_class, **kargs)
-    return false if @dead
-    kill
-    structure = structure_class.new(
-      @position,
-      @player,
-      @renderer,
-      **kargs
-    )
-    structure.heal(:vehicle_repair)
-    return structure
-  end
-
-  def repair_structure(structure)
-    return false if @dead || !structure.collided?(self)
-    kill
-    structure.heal(:vehicle_repair)
   end
 
   def update(accelerate_mode: "forward")
@@ -77,37 +32,24 @@ class Vehicle
     when "forward"
       accelerate
     when "forward_and_left"
-      accelerate(offset: PHYSICS.turning_angle)
+      accelerate(offset: self.class::PHYSICS.turning_angle)
     when "forward_and_right"
-      accelerate(offset: -PHYSICS.turning_angle)
+      accelerate(offset: -self.class::PHYSICS.turning_angle)
     when ""
     else
       raise "unexpected accelerate mode: #{accelerate_mode}"
     end
 
-    @direction += @angular_velocity * TURN_RATE
+    @direction += @angular_velocity * self.class::TURN_RATE
     @direction += Math::PI * 2 if @direction < -Math::PI
     @direction -= Math::PI * 2 if @direction > Math::PI
-    movement_vector = vector_from_magnitude_and_direction(@velocity * MOVEMENT_RATE, @direction)
+    movement_vector = vector_from_magnitude_and_direction(@velocity * self.class::MOVEMENT_RATE, @direction)
     @position += movement_vector
-  end
-
-  def render
-    return if @dead
-
-    @circle.x = @position[0]
-    @circle.y = @position[1]
-
-    v = vector_from_magnitude_and_direction(5.0, @direction)
-    @line.x1 = @position[0]
-    @line.y1 = @position[1]
-    @line.x2 = @position[0] + v[0]
-    @line.y2 = @position[1] + v[1]
   end
 
   def collided_with_vehicle?(other_vehicle)
     distance = (@position - other_vehicle.position).magnitude
-    distance <= 10.0
+    distance <= self.class::COLLISION_RADIUS + other_vehicle.class::COLLISION_RADIUS
   end
 
   def collided_with_projectile?(projectile)
@@ -115,7 +57,7 @@ class Vehicle
     # FIXME: How about increasing this to give projectiles a bigger area of effect?
     # Projectiles are weak against factories, and it'd make sense if that's because
     # they have a big but weaker explosion?
-    distance <= 8
+    distance <= self.class::COLLISION_RADIUS + projectile.class::COLLISION_RADIUS
   end
 
   def going_south?
@@ -141,10 +83,10 @@ class Vehicle
 protected
 
   def apply_drag_forces
-    apply_drag_to_velocity PHYSICS.air_resistance(@velocity)
-    apply_drag_to_angular_velocity PHYSICS.air_resistance(@angular_velocity)
+    apply_drag_to_velocity self.class::PHYSICS.air_resistance(@velocity)
+    apply_drag_to_angular_velocity self.class::PHYSICS.air_resistance(@angular_velocity)
 
-    rolling_resistance_per_unit_velocity = PHYSICS.rolling_resistance / (@velocity + @angular_velocity)
+    rolling_resistance_per_unit_velocity = self.class::PHYSICS.rolling_resistance / (@velocity + @angular_velocity)
     rolling_resistance_per_unit_velocity = 0 if rolling_resistance_per_unit_velocity.infinite?
     apply_drag_to_velocity rolling_resistance_per_unit_velocity * @velocity
     apply_drag_to_angular_velocity rolling_resistance_per_unit_velocity * @angular_velocity
@@ -155,22 +97,22 @@ protected
   end
 
   def apply_drag_to_velocity(max_drag_force)
-    drag_force = [max_drag_force.abs, PHYSICS.momentum(@velocity.abs)].min
+    drag_force = [max_drag_force.abs, self.class::PHYSICS.momentum(@velocity.abs)].min
     apply_forwards_force(-drag_force * sign_of(@velocity))
   end
 
   def apply_drag_to_angular_velocity(max_drag_force)
-    drag_force = [max_drag_force.abs, PHYSICS.momentum(@angular_velocity.abs)].min
+    drag_force = [max_drag_force.abs, self.class::PHYSICS.momentum(@angular_velocity.abs)].min
     apply_angular_force(-drag_force * sign_of(@angular_velocity))
   end
 
   def apply_forwards_force(force)
-    velocity_change = force / PHYSICS.mass
+    velocity_change = force / self.class::PHYSICS.mass
     @velocity += velocity_change
   end
 
   def apply_angular_force(force)
-    velocity_change = force / PHYSICS.mass
+    velocity_change = force / self.class::PHYSICS.mass
     @angular_velocity += velocity_change
   end
 
@@ -185,7 +127,7 @@ protected
   end
 
   def accelerate(offset: 0.0)
-    acceleration_force_vector = vector_from_magnitude_and_direction(PHYSICS.max_acceleration_force, offset)
+    acceleration_force_vector = vector_from_magnitude_and_direction(self.class::PHYSICS.max_acceleration_force, offset)
     apply_angular_force(acceleration_force_vector[0])
     apply_forwards_force(acceleration_force_vector[1])
   end

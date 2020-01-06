@@ -1,5 +1,5 @@
 require_relative './buildable'
-require_relative '../entities/projectile'
+require_relative '../vehicles/projectile'
 require_relative '../utils'
 
 class Turret < BuildableStructure

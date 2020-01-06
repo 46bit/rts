@@ -25,7 +25,7 @@ class Generator < Structure
     distance = (object.position - @position).magnitude
     case object
     when Vehicle
-      return distance <= 4 + Vehicle::COLLISION_RADIUS
+      return distance <= 4 + object.class::COLLISION_RADIUS
     else
       raise "unexpected collision query for object with class #{object.class}"
     end

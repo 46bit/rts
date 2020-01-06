@@ -1,5 +1,5 @@
-require_relative '../entities/vehicle'
-require_relative '../entities/projectile'
+require_relative '../vehicles/vehicle'
+require_relative '../vehicles/projectile'
 
 class Structure
   COLLISION_RADIUS = 1
