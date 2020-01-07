@@ -27,6 +27,14 @@ class Factory < Structure
     end
   end
 
+  def producing?
+    !@unit.nil?
+  end
+
+  def energy_drain
+    producing? ? 20 : 0
+  end
+
   def unit_progress
     @unit.healthyness
   end

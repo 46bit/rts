@@ -21,7 +21,7 @@ class Player
   end
 
   attr_reader :color, :control, :unit_cap, :base_generation_capacity, :renderer
-  attr_accessor :factories, :vehicles, :turrets, :projectiles
+  attr_accessor :energy, :factories, :vehicles, :turrets, :projectiles
 
   def initialize(color, control, renderer, unit_cap: Float::INFINITY, base_generation_capacity: 1.0)
     @color = color
@@ -29,6 +29,7 @@ class Player
     @renderer = renderer
     @unit_cap = unit_cap
     @base_generation_capacity = base_generation_capacity
+    @energy = 0.0
     @factories = []
     @vehicles = []
     @turrets = []
@@ -36,14 +37,24 @@ class Player
   end
 
   def update(generators, other_players)
-    @latest_build_capacity = build_capacity(generators)
-    build_capacity_per_factory = @latest_build_capacity.to_f / @factories.length
-    @factories.each do |factory|
+    update_energy(generators)
+
+    powered_units = @factories.select(&:built?).select(&:producing?)
+    power_drains = Hash[powered_units.map do |powered_unit|
+      [powered_unit.object_id, powered_unit.energy_drain]
+    end]
+    desired_energy_drain = power_drains.values.sum
+    if desired_energy_drain > @energy
+      power_per_unit = @energy / powered_units.length
+      power_drains.transform_values! { power_per_unit }
+    end
+    at_unit_cap =  unit_count < @unit_cap
+    powered_units.each do |powered_unit|
       # FIXME: do something with unused_build_capacity
-      unused_build_capacity, vehicle = factory.update(build_capacity_per_factory, can_produce: unit_count < @unit_cap)
-      unless vehicle.nil?
-        @vehicles << vehicle
-      end
+      power_drain = power_drains[powered_unit.object_id]
+      unused_build_capacity, vehicle = powered_unit.update(power_drain, can_produce: at_unit_cap)
+      @vehicles << vehicle unless vehicle.nil?
+      @energy -= power_drain
     end
 
     enemy_vehicles = (other_players.map(&:vehicles) + other_players.map(&:factories) + other_players.map(&:turrets)).flatten
@@ -77,7 +88,7 @@ class Player
         )
       end
       pretty_build_capacity = @latest_build_capacity == @latest_build_capacity.to_i ? @latest_build_capacity.to_i : @latest_build_capacity
-      @stats_text.text = "#{unit_count}/#{@unit_cap} +#{pretty_build_capacity}"
+      @stats_text.text = "#{unit_count}/#{@unit_cap} #{@energy}+#{pretty_build_capacity}"
       @stats_text.x = (oldest_factory.position[0] - 9.5)
       @stats_text.y = (oldest_factory.position[1] + 14)
     else
@@ -92,6 +103,11 @@ class Player
 
   def units
     @factories + @vehicles + @turrets
+  end
+
+  def update_energy(generators)
+    @latest_build_capacity = build_capacity(generators)
+    @energy += @latest_build_capacity
   end
 
   def build_capacity(generators)
