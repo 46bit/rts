@@ -44,8 +44,8 @@ class Bot < Vehicle
   def kill
     super
     return if HEADLESS
-    @circle.remove
-    @line.remove
+    @circle.remove if @circle
+    @line.remove if @line
   end
 
   def prerender

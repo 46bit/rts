@@ -1,35 +1,23 @@
-require 'matrix'
-require_relative '../utils'
 require_relative './entity'
-require_relative './ownable'
-require_relative './killable'
-require_relative './buildable'
-require_relative './collidable'
-require_relative './movable'
-require_relative './manoeuvrable'
+require_relative './capabilities/ownable'
+require_relative './capabilities/buildable'
+require_relative './capabilities/collidable'
+require_relative './capabilities/manoeuvrable'
 
 class Vehicle < Entity
   include Ownable
-  include Killable
   include Buildable
   include Collidable
-  include Movable
   include Manoeuvrable
 
-  def initialize(renderer, position, player, max_health:, health: nil, built: true, direction: rand * Math::PI * 2, physics: DEFAULT_PHYSICS, turn_rate: 1.0, movement_rate: 1.0, collision_radius:)
+  def initialize(renderer, position, player, max_health:, health: nil, built: false, cost: max_health * 10, direction: rand * Math::PI * 2, physics: DEFAULT_PHYSICS, turn_rate: 1.0, movement_rate: 1.0, collision_radius:)
     super(renderer, position)
-    @player = player
-    @max_health = max_health
-    @health = health.nil? ? (built ? max_health : 0.0) : health
-    @dead = false
-    @built = built
-    @velocity = 0.0
-    @direction = direction
-    @angular_velocity = 0.0
-    @physics = physics
+    initialize_ownable(player: player)
+    initialize_buildable(max_health: max_health, health: health, built: built, cost: cost)
+    initialize_collidable(collision_radius: collision_radius)
+    initialize_manoeuvrable(physics: physics, velocity: 0.0, direction: direction, angular_velocity: 0.0)
     @movement_rate = movement_rate
     @turn_rate = turn_rate
-    @collision_radius = collision_radius
   end
 
   def update(move)

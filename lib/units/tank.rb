@@ -23,10 +23,10 @@ class Tank < Vehicle
   def kill
     super
     return if HEADLESS
-    @circle.remove
-    @square.remove
-    @line.remove
-    @health_bar.remove
+    @circle.remove if @circle
+    @square.remove if @square
+    @line.remove if @line
+    @health_bar.remove if @health_bar
   end
 
   def prerender

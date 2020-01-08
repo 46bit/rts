@@ -1,7 +1,7 @@
 require_relative './entity'
-require_relative './movable'
-require_relative './killable'
-require_relative './collidable'
+require_relative './capabilities/movable'
+require_relative './capabilities/killable'
+require_relative './capabilities/collidable'
 
 class Projectile < Entity
   include Movable
@@ -12,14 +12,12 @@ class Projectile < Entity
 
   def initialize(renderer, position, velocity, direction, range, damage, width, length, color, opacity: 1.0, z: 999, collision_radius:)
     super(renderer, position)
+    initialize_movable(velocity: velocity, direction: direction)
+    initialize_killable(max_health: 1, health: 1)
+    initialize_collidable(collision_radius: collision_radius)
     @start_position = position
-    @direction = direction
     @range = range
     @damage = damage
-    @dead = false
-    @velocity = velocity
-    @direction = direction
-    @collision_radius = collision_radius
 
     prerender(width, length, color, opacity, z) unless HEADLESS
   end

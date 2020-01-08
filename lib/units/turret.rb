@@ -17,8 +17,8 @@ class Turret < Structure
   def kill
     super
     unless HEADLESS
-      @star.remove
-      @health_bar.remove
+      @star.remove if @star
+      @health_bar.remove if @health_bar
     end
   end
 

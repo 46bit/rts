@@ -41,10 +41,10 @@ class Player
 
     powered_units = @factories.select(&:built?).select(&:producing?)
     power_drains = Hash[powered_units.map do |powered_unit|
-      [powered_unit.object_id, powered_unit.energy_drain]
+      [powered_unit.object_id, powered_unit.energy_consumption]
     end]
-    desired_energy_drain = power_drains.values.sum
-    if desired_energy_drain > @energy
+    desired_energy_consumption = power_drains.values.sum
+    if desired_energy_consumption > @energy
       power_per_unit = @energy / powered_units.length
       power_drains.transform_values! { power_per_unit }
     end
@@ -52,7 +52,7 @@ class Player
     powered_units.each do |powered_unit|
       # FIXME: do something with unused_build_capacity
       power_drain = power_drains[powered_unit.object_id]
-      unused_build_capacity, vehicle = powered_unit.update(power_drain, can_produce: at_unit_cap)
+      vehicle = powered_unit.update(power_drain, can_complete: at_unit_cap)
       @vehicles << vehicle unless vehicle.nil?
       @energy -= power_drain
     end

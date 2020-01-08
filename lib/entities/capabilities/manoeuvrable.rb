@@ -1,7 +1,16 @@
-require_relative './physics'
+require_relative '../physics'
+require_relative './movable'
 
 module Manoeuvrable
+  include Movable
+
   attr_reader :physics, :angular_velocity
+
+  def initialize_manoeuvrable(physics: DEFAULT_PHYSICS, velocity: 0.0, direction: 0.0, angular_velocity: 0.0)
+    initialize_movable(velocity: velocity, direction: direction)
+    @physics = physics
+    @angular_velocity = angular_velocity
+  end
 
   def update_velocities(turning_angle: 0.0)
     # FIXME: Drag should be applied after acceleration, but based on the previous velocity?

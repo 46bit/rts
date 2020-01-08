@@ -1,67 +1,38 @@
 require_relative '../entities/structure'
-require_relative './bot'
-require_relative './tank'
+require_relative '../entities/capabilities/engineerable'
 
 class Factory < Structure
-  UNIT_HEALTH_PER_BUILD_CAPACITY = 0.1
+  include Engineerable
 
-  attr_reader :unit, :unit_investment
   attr_reader :outline, :square, :progress_square, :health_bar
 
   def initialize(renderer, position, player, built: true)
     super(renderer, position, player, max_health: 120, built: built, health: built ? 120 : 0, collision_radius: 15)
-    @unit = nil
+    initialize_engineerable
     prerender unless HEADLESS
   end
 
-  def construct(unit_class)
-    return unless @built
-    if @unit.nil?
-      @unit = unit_class.new(
-        @renderer,
-        @position,
-        @player,
-        built: false,
-      )
-      @unit_investment = 0
-    end
-  end
-
-  def producing?
-    !@unit.nil?
-  end
-
-  def energy_drain
-    producing? ? 20 : 0
-  end
-
-  def unit_progress
-    @unit.healthyness
+  def produce(*)
+    super if built?
   end
 
   def kill
     super
+    unless @unit.nil?
+      @unit.kill
+      @unit = nil
+    end
     unless HEADLESS
-      @outline.remove
-      @square.remove
-      @progress_square.remove
-      @health_bar.remove
+      @outline.remove if @outline
+      @square.remove if @square
+      @progress_square.remove if @progress_square
+      @health_bar.remove if @health_bar
     end
   end
 
-  def update(build_capacity, can_produce: true)
-    return if @dead || !@built || !@unit
-
-    @unit.repair(build_capacity * UNIT_HEALTH_PER_BUILD_CAPACITY)
-    # FIXME: Reimplement excess_build_capacity when I start using it
-    # excess_build_capacity = [@unit_investment - UNIT_CONSTRUCTION_COST, 0].max
-    if can_produce && @unit.built?
-      built_unit = @unit
-      built_unit.prerender
-      @unit = nil
-      return 0.0, built_unit
-    end
-    return 0.0, nil
+  def update(energy, can_complete: true)
+    return if dead? || under_construction? || !producing?
+    return update_production(energy, can_complete: can_complete)
   end
 
   def prerender
@@ -103,7 +74,7 @@ class Factory < Structure
     @health_bar.width = healthyness > 0.5 ? 1.5 : 2
 
     @outline.opacity = @built ? 1.0 : (0.2 + healthyness * 0.8)
-    @progress_square.opacity = @unit.nil? ? 0.0 : (0.1 + unit_progress * 0.9)
+    @progress_square.opacity = @unit.nil? ? 0.0 : (0.1 + production_progress * 0.9)
 
     if damaged?
       @health_bar.add

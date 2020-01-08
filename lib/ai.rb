@@ -23,7 +23,7 @@ end
 # its units guard their nearest generators.
 class GuardNearestAI
   def update(generators, player, other_players)
-    player.factories.each { |f| f.construct(Bot) }
+    player.factories.each { |f| f.produce(Bot) }
 
     targets = generators.reject { |g| g.owner?(player) }
     targets = generators if targets.empty?
@@ -47,7 +47,13 @@ end
 # AI that focuses on seizing the generator closest to each unit. When it has seized all generators
 # its units swarm enemy units and factories.
 class AttackNearestAI
+  def initialize
+    @build_factory_ai = BuildFactoryAI.new
+  end
+
   def update(generators, player, other_players)
+    return @build_factory_ai.update(generators, player, other_players) if player.energy > 1000
+
     targets = generators.reject { |g| g.owner?(player) }
     targets += other_players.map(&:turrets).flatten if targets.length >= generators.length / 2
     targets += other_players.select { |p| p.vehicles.length <= player.vehicles.length / 4 }.map(&:factories).flatten
@@ -56,9 +62,9 @@ class AttackNearestAI
 
     living_other_players = other_players.select { |p| p.unit_count > 0 }
     if living_other_players.length == 1 && living_other_players[0].turrets.length > 1
-      player.factories.each { |f| f.construct(Tank) }
+      player.factories.each { |f| f.produce(Tank) }
     else
-      player.factories.each { |f| f.construct(Bot) }
+      player.factories.each { |f| f.produce(Bot) }
     end
 
     player.vehicles.each do |vehicle|
@@ -81,6 +87,7 @@ end
 
 class DefensiveAI < AttackNearestAI
   def initialize(world_size, proportion_of_turret_constructions: 0.5)
+    super()
     @world_size = world_size
     @proportion_of_turret_constructions = proportion_of_turret_constructions
     @targets = {}
@@ -88,7 +95,9 @@ class DefensiveAI < AttackNearestAI
   end
 
   def target(vehicle, generators, player, other_players)
-    player.factories.each { |f| f.construct(Bot) }
+    if player.unit_count > 20 && vehicle.object_id % 12 == 0
+      @targets[vehicle.object_id] ||= generators.reject { |g| g.owner?(player) }.min_by { |g| (vehicle.position - g.position).magnitude }.position
+    end
 
     return @targets[vehicle.object_id] if @targets[vehicle.object_id] && (@targets[vehicle.object_id].class == Vector || !@targets[vehicle.object_id].dead)
 
@@ -156,7 +165,7 @@ class DefensiveAI < AttackNearestAI
     return super if player.turrets.length == 0 && generators.select { |g| g.owner?(player) }.length < 5 && (other_players.max_by { |p| p.unit_count } == nil || other_players.max_by { |p| p.unit_count }.unit_count < player.unit_count * 2 )
     return super if generators.select { |g| g.owner?(player) }.length < [[player.turrets.select { |t| t.built }.length, 2].min, player.vehicles.length / 5].max
 
-    player.factories.each { |f| f.construct(Bot) }
+    player.factories.each { |f| f.produce(Bot) }
 
     player.vehicles.each do |vehicle|
       next if vehicle.dead
@@ -201,6 +210,7 @@ end
 
 class BuildFactoryAtCentreThenAttackAI < AttackNearestAI
   def initialize(generators)
+    super()
     average_generator_x = generators.map(&:position).map { |p| p[0] }.sum.to_f / generators.length
     average_generator_y = generators.map(&:position).map { |p| p[1] }.sum.to_f / generators.length
     @target = Vector[average_generator_x, average_generator_y]
@@ -209,7 +219,7 @@ class BuildFactoryAtCentreThenAttackAI < AttackNearestAI
   def update(generators, player, other_players)
     return super if !@target || generators.select { |g| g.owner?(player) }.length < 2 || (@target.class != Vector && @target.dead)
 
-    player.factories.each { |f| f.construct(Bot) }
+    player.factories.each { |f| f.produce(Bot) }
 
     player.vehicles.each do |vehicle|
       next if vehicle.dead
@@ -241,7 +251,7 @@ end
 
 class KillFactoriesAI
   def update(generators, player, other_players)
-    player.factories.each { |f| f.construct(Bot) }
+    player.factories.each { |f| f.produce(Bot) }
 
     weakest_player = other_players.min_by(&:unit_count)
     targets = weakest_player.factories if weakest_player
@@ -255,6 +265,75 @@ class KillFactoriesAI
       elsif vehicle.turn_left_to_reach?(target.position) && rand > 0.2
         vehicle.update(:turn_left)
       elsif vehicle.turn_right_to_reach?(target.position) && rand > 0.2
+        vehicle.update(:turn_right)
+      else
+        vehicle.update(:forward)
+      end
+    end
+  end
+end
+
+class BuildFactoryAI
+  def initialize
+    @construction = nil
+  end
+
+  def target(vehicle, generators, player, other_players, radius: 30)
+    return @construction if @construction
+    return nil if radius > 120
+
+    possible_locations = player.factories.map do |f|
+      Vector[
+        f.position[0] - radius + 2 * radius * rand,
+        f.position[1] - radius + 2 * radius * rand,
+      ]
+    end.select { |p| reasonable_target?(p, generators, player, other_players) }
+    return target(vehicle, generators, player, other_players, radius: radius * 20) if possible_locations.empty?
+    nearest_possible_location = possible_locations.min_by { |p| (vehicle.position - p).magnitude }
+    @construction = nearest_possible_location
+  end
+
+  def reasonable_target?(target, generators, player, other_players)
+    all_factories = player.factories + other_players.map(&:factories).flatten
+    all_structures = generators + all_factories + other_players.map(&:vehicles).flatten
+    reasonable = true
+    all_structures.each do |structure|
+      if (structure.position - target).magnitude < 30
+        reasonable = false
+        break
+      end
+    end
+    return reasonable
+  end
+
+  def update(generators, player, other_players)
+    player.factories.each { |f| f.produce(Bot) }
+
+    player.vehicles.each do |vehicle|
+      next if vehicle.dead || vehicle.class == Tank
+
+      vehicle_target = target(vehicle, generators, player, other_players)
+      if vehicle_target.nil?
+        vehicle.update(:turn_left)
+        next
+      end
+      target_position = vehicle_target.class == Vector ? vehicle_target : vehicle_target.position
+
+      if vehicle_target.class == Vector && (vehicle_target - vehicle.position).magnitude < 10
+        #puts "#{player.color}: constructing at #{target_position}"
+        structure = vehicle.construct_structure(Factory)
+        player.factories << structure
+        @construction = structure
+      elsif vehicle_target.class != Vector && vehicle_target.collided?(vehicle)
+        #puts "#{player.color}: repairing at #{target_position}"
+        vehicle.repair_structure(vehicle_target)
+        if vehicle_target.built
+          #puts "finished"
+          @construction = nil
+        end
+      elsif vehicle.turn_left_to_reach?(target_position) && rand > 0.2
+        vehicle.update(:turn_left)
+      elsif vehicle.turn_right_to_reach?(target_position) && rand > 0.2
         vehicle.update(:turn_right)
       else
         vehicle.update(:forward)

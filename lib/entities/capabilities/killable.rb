@@ -1,6 +1,12 @@
 module Killable
   attr_reader :health, :dead
 
+  def initialize_killable(max_health:, health: max_health)
+    @max_health = max_health
+    @health = health
+    @dead = false
+  end
+
   def dead?
     !!@dead
   end
