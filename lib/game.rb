@@ -171,7 +171,7 @@ protected
         player.vehicles.each do |vehicle|
           if generator.collided?(vehicle)
             generator.capture(player)
-            vehicle.kill
+            vehicle.damage(10)
           end
         end
       end
