@@ -1,7 +1,16 @@
 require_relative '../entities/structure'
+require_relative '../entities/capabilities/orderable'
 require_relative '../entities/capabilities/engineerable'
 
+FACTORY_ORDER_CALLBACKS = {
+  NilClass => lambda do
+    return nil
+  end,
+  BuildOrder => lambda { |o| build(o) },
+}
+
 class Factory < Structure
+  include Orderable
   include Engineerable
 
   attr_reader :outline, :square, :progress_square, :health_bar
@@ -9,6 +18,7 @@ class Factory < Structure
   def initialize(renderer, position, player, built: true)
     super(renderer, position, player, max_health: 120, built: built, health: built ? 120 : 0, collision_radius: 15)
     initialize_engineerable
+    initialize_orderable(FACTORY_ORDER_CALLBACKS)
     prerender unless HEADLESS
   end
 
@@ -81,5 +91,12 @@ class Factory < Structure
     else
       @health_bar.remove
     end
+  end
+
+protected
+
+  def build(build_order)
+    produce(build_order.unit_class)
+    return build_order
   end
 end

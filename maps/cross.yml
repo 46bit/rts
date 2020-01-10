@@ -3,7 +3,7 @@ unit_cap: 200
 world_size: 600
 players:
   - color: green
-    control: defensive_ai
+    control: guard_nearest_ai
     factories:
     - x: 65
       y: 65
@@ -13,12 +13,12 @@ players:
     - x: 535
       y: 65
   - color: yellow
-    control: build_factory_at_centre_then_attack_ai
+    control: guard_nearest_ai
     factories:
     - x: 65
       y: 535
   - color: blue
-    control: kill_factories_ai
+    control: attack_nearest_ai
     factories:
     - x: 535
       y: 535

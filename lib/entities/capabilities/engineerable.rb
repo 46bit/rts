@@ -1,13 +1,15 @@
 module Engineerable
-  attr_reader :unit
+  attr_reader :production_range, :unit
 
-  def initialize_engineerable
+  def initialize_engineerable(production_range: 0)
+    @production_range = production_range
     @unit = nil
   end
 
   def produce(unit_class, position: @position, **kargs)
     # FIXME: Do override what's in production
     return unless @unit.nil?
+    return false unless within_production_range?(position)
     @unit = unit_class.new(
       @renderer,
       position,
@@ -27,6 +29,10 @@ module Engineerable
 
   def energy_consumption
     producing? ? 20 : 0
+  end
+
+  def within_production_range?(position)
+    (position - @position).magnitude <= @production_range
   end
 
   def update_production(energy, can_complete: true)

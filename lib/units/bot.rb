@@ -1,6 +1,8 @@
 require_relative '../entities/vehicle'
 
 class Bot < Vehicle
+  include Engineerable
+
   RADIUS = 5.0
   SACRIFICIAL_REPAIR_VALUE = 20
 
@@ -17,28 +19,12 @@ class Bot < Vehicle
       movement_rate: 0.1,
       turn_rate: 4.0/3.0,
       collision_radius: 5.0,
+      order_callbacks: DEFAULT_VEHICLE_ORDER_CALLBACKS.merge({
+        RemoteBuildOrder => lambda { |o| remote_build(o) },
+      })
     )
+    initialize_engineerable
     prerender unless HEADLESS || !built
-  end
-
-  def construct_structure(structure_class, **kargs)
-    return false if @dead
-    kill
-    structure = structure_class.new(
-      @renderer,
-      @position,
-      @player,
-      built: false,
-      **kargs
-    )
-    structure.repair(SACRIFICIAL_REPAIR_VALUE)
-    return structure
-  end
-
-  def repair_structure(structure)
-    return false if @dead || !structure.collided?(self)
-    kill
-    structure.repair(SACRIFICIAL_REPAIR_VALUE)
   end
 
   def kill
@@ -80,5 +66,13 @@ class Bot < Vehicle
     @line.y1 = @position[1]
     @line.x2 = @position[0] + v[0]
     @line.y2 = @position[1] + v[1]
+  end
+
+protected
+
+  def remote_build(remote_build_order)
+    # FIXME: Restrict to only construct structures, and restrict build range
+    produce(remote_build_order.unit_class, position: remote_build_order.build_position)
+    return build_order
   end
 end
