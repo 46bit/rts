@@ -4,14 +4,16 @@ require_relative './capabilities/killable'
 require_relative './capabilities/collidable'
 
 class Projectile < Entity
+  include Ownable
   include Movable
   include Killable
   include Collidable
 
   attr_reader :start_position, :range, :damage, :teardrop
 
-  def initialize(renderer, position, velocity, direction, range, damage, width, length, color, opacity: 1.0, z: 999, collision_radius:)
+  def initialize(renderer, position, velocity, direction, range, damage, width, length, player, opacity: 1.0, z: 999, collision_radius:)
     super(renderer, position)
+    initialize_ownable(player: player)
     initialize_movable(velocity: velocity, direction: direction)
     initialize_killable(max_health: 1, health: 1)
     initialize_collidable(collision_radius: collision_radius)
@@ -19,17 +21,17 @@ class Projectile < Entity
     @range = range
     @damage = damage
 
-    prerender(width, length, color, opacity, z) unless HEADLESS
+    prerender(width, length, opacity, z) unless HEADLESS
   end
 
-  def prerender(width, length, color, opacity, z)
+  def prerender(width, length, opacity, z)
     @teardrop = @renderer.teardrop(
       x: @position[0],
       y: @position[1],
       direction: @direction,
       width: width,
       length: length,
-      color: color,
+      color: @player.color,
       opacity: opacity,
       z: z,
     )

@@ -1,4 +1,5 @@
 require_relative '../entities/vehicle'
+require_relative './capabilities/engineerable'
 
 DEFAULT_ENGINEER_ORDER_CALLBACKS = DEFAULT_VEHICLE_ORDER_CALLBACKS.merge({
   RemoteBuildOrder => lambda { |o| remote_build(o) },

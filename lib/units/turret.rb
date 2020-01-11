@@ -100,6 +100,6 @@ class TurretProjectile < Projectile
   DAMAGE = 10
 
   def initialize(renderer, position, direction, player)
-    super(renderer, position, 3.5, direction, RANGE, DAMAGE, 6, 6, player.color, opacity: 0.7, collision_radius: 4)
+    super(renderer, position, 3.5, direction, RANGE, DAMAGE, 6, 6, player, opacity: 0.7, collision_radius: 4)
   end
 end
