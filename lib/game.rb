@@ -81,13 +81,11 @@ protected
   def check_for_winner
     return if @winner
 
-    players_with_a_positive_unit_count = @players.select { |p| p.unit_count > 0 }
-    players_with_projectiles = @players.select { |p| p.projectiles.length > 0 }
-    active_players = (players_with_a_positive_unit_count + players_with_projectiles).uniq
-    if active_players.length == 0
+    undefeated_players = @players.reject { |p| p.defeated? }
+    if undefeated_players.empty?
       @winner = "nobody"
-    elsif active_players.length == 1
-      @winner = active_players[0].color
+    elsif undefeated_players.length == 1
+      @winner = undefeated_players[0].color
     end
 
     if @winner

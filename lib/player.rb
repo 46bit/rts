@@ -42,6 +42,8 @@ class Player
   end
 
   def update(generators, other_players)
+    return if defeated?
+
     remove_dead_units
 
     update_energy_generation(generators)
@@ -88,6 +90,10 @@ class Player
 
   def units
     @factories + @vehicles + @turrets + @constructions
+  end
+
+  def defeated?
+    unit_count == 0 && @projectiles.empty?
   end
 
 protected
