@@ -21,7 +21,7 @@ class Player
   attr_reader :color, :control, :unit_cap, :base_generation_capacity, :renderer
   attr_accessor :energy, :factories, :vehicles, :turrets, :projectiles, :constructions, :commander
 
-  def initialize(color, control, renderer, commander_position, unit_cap: Float::INFINITY, base_generation_capacity: 1.0)
+  def initialize(color, control, renderer, commander_position, unit_cap: Float::INFINITY, base_generation_capacity: 5)
     @color = color
     @control = control
     @renderer = renderer
