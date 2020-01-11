@@ -4,24 +4,20 @@ world_size: 600
 players:
   - color: green
     control: build_turrets_ai
-    factories:
-    - x: 65
-      y: 65
+    x: 65
+    y: 65
   - color: red
     control: attack_nearest_ai
-    factories:
-    - x: 535
-      y: 65
+    x: 535
+    y: 65
   - color: yellow
     control: guard_nearest_ai
-    factories:
-    - x: 65
-      y: 535
+    x: 65
+    y: 535
   - color: blue
     control: guard_nearest_ai
-    factories:
-    - x: 535
-      y: 535
+    x: 535
+    y: 535
 generators:
   - x: 155
     y: 65

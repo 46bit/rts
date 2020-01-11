@@ -1,29 +1,27 @@
 require_relative './ai'
+require_relative './units/commander'
 
 class Player
   def self.from_config(player_config, unit_cap, renderer, generators)
     # FIXME: generators shouldn't be passed here. rethink the AI structure.
     ai = ai_from_string(player_config["control"], renderer.world_size, generators)
     raise "no AI found for player configured to use '#{player_config["control"]}'" unless ai
-    player = Player.new(player_config["color"], ai, renderer, unit_cap: unit_cap)
-    player_config["factories"].each do |factory_config|
-      player.factories << Factory.new(
-        renderer,
-        Vector[
-          factory_config["x"],
-          factory_config["y"]
-        ],
-        player,
-        built: true,
-      )
-    end
-    return player
+    Player.new(
+      player_config["color"],
+      ai,
+      renderer,
+      Vector[
+        player_config["x"],
+        player_config["y"],
+      ],
+      unit_cap: unit_cap,
+    )
   end
 
   attr_reader :color, :control, :unit_cap, :base_generation_capacity, :renderer
-  attr_accessor :energy, :factories, :vehicles, :turrets, :projectiles, :constructions
+  attr_accessor :energy, :factories, :vehicles, :turrets, :projectiles, :constructions, :commander
 
-  def initialize(color, control, renderer, unit_cap: Float::INFINITY, base_generation_capacity: 1.0)
+  def initialize(color, control, renderer, commander_position, unit_cap: Float::INFINITY, base_generation_capacity: 1.0)
     @color = color
     @control = control
     @renderer = renderer
@@ -35,6 +33,12 @@ class Player
     @turrets = []
     @projectiles = []
     @constructions = []
+    @commander = Commander.new(
+      @renderer,
+      commander_position,
+      self,
+    )
+    @vehicles << @commander
   end
 
   def update(generators, other_players)
@@ -137,6 +141,6 @@ class Player
   def build_capacity(generators)
     owned_generators = generators.select { |g| g.owner?(self) }
     owned_generation_capacity = owned_generators.map { |g| g.capacity }.sum
-    return @base_generation_capacity + owned_generation_capacity
+    return @base_generation_capacity.to_f + owned_generation_capacity
   end
 end

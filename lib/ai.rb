@@ -22,6 +22,15 @@ end
 # its units guard their nearest generators.
 class GuardNearestAI
   def update(generators, player, other_players)
+    if player.factories.empty? && !player.vehicles.empty?
+      new_factory_location = player.constructions.select { |c| c.class == Factory }[0]&.position
+      new_factory_location ||= player.vehicles.map { |v| v.position }.inject(:+) / player.vehicles.length
+      player.vehicles.each do |vehicle|
+        vehicle.order = RemoteBuildOrder.new(new_factory_location, Factory)
+      end
+      return
+    end
+
     player.factories.each { |f| f.produce(Bot) }
 
     targets = generators.reject { |g| g.owner?(player) }
@@ -43,6 +52,15 @@ end
 # its units swarm enemy units and factories.
 class AttackNearestAI
   def update(generators, player, other_players)
+    if player.factories.empty? && !player.vehicles.empty?
+      new_factory_location = player.constructions.select { |c| c.class == Factory }[0]&.position
+      new_factory_location ||= player.vehicles.map { |v| v.position }.inject(:+) / player.vehicles.length
+      player.vehicles.each do |vehicle|
+        vehicle.order = RemoteBuildOrder.new(new_factory_location, Factory)
+      end
+      return
+    end
+
     targets = generators.reject { |g| g.owner?(player) }
     targets += other_players.map(&:turrets).flatten if targets.length >= generators.length / 2
     targets += other_players.select { |p| p.vehicles.length <= player.vehicles.length / 4 }.map(&:factories).flatten
@@ -73,13 +91,21 @@ end
 # its units swarm enemy units and factories.
 class BuildTurretsAI
   def update(generators, player, other_players)
-    return if player.factories.empty?
+    if player.factories.empty? && !player.vehicles.empty?
+      new_factory_location = player.constructions.select { |c| c.class == Factory }[0]&.position
+      new_factory_location ||= player.vehicles.map { |v| v.position }.inject(:+) / player.vehicles.length
+      player.vehicles.each do |vehicle|
+        vehicle.order = RemoteBuildOrder.new(new_factory_location, Factory)
+      end
+      return
+    end
 
     player.factories.each { |f| f.produce(Bot) }
 
+    base = player.factories[0] || player.turrets[0] || player.commander || player.units[0] || (return)
     build_at = Vector[
-      player.factories[0].position[0] + (1 + player.turrets.length) * 30,
-      player.factories[0].position[1],
+      base.position[0] + (1 + player.turrets.length) * 30,
+      base.position[1],
     ]
     already_building = player.vehicles.select { |v| v.order != nil }[0]
 
