@@ -11,4 +11,8 @@ class Location < Entity
     initialize_ownable(player: player)
     initialize_collidable(collision_radius: collision_radius)
   end
+
+  def player=(player)
+    @player = player
+  end
 end

@@ -48,8 +48,9 @@ class Game
     remove_killed_vehicles
     remove_killed_projectiles
 
-    dead_players = @players.select { |p| p.unit_count.zero? }
-    @generators.select { |p| dead_players.include?(p) }.each { |g| g.player = nil }
+    @generators.each do |generator|
+      generator.player = nil if generator.player && generator.player.defeated?
+    end
 
     check_for_winner unless @sandbox || @winner
   end
