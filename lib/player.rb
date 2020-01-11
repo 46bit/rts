@@ -21,7 +21,7 @@ class Player
   end
 
   attr_reader :color, :control, :unit_cap, :base_generation_capacity, :renderer
-  attr_accessor :energy, :factories, :vehicles, :turrets, :projectiles
+  attr_accessor :energy, :factories, :vehicles, :turrets, :projectiles, :constructions
 
   def initialize(color, control, renderer, unit_cap: Float::INFINITY, base_generation_capacity: 1.0)
     @color = color
@@ -34,12 +34,14 @@ class Player
     @vehicles = []
     @turrets = []
     @projectiles = []
+    @constructions = []
   end
 
   def update(generators, other_players)
     update_energy(generators)
 
-    powered_units = @factories.select(&:built?).select(&:producing?)
+    powered_units = @factories.select(&:producing?)
+    powered_units += @vehicles.select { |u| u.respond_to?(:producing?) && u.producing? }
     power_drains = Hash[powered_units.map do |powered_unit|
       [powered_unit.object_id, powered_unit.energy_consumption]
     end]
@@ -52,9 +54,30 @@ class Player
     powered_units.each do |powered_unit|
       # FIXME: do something with unused_build_capacity
       power_drain = power_drains[powered_unit.object_id]
-      vehicle = powered_unit.update(power_drain, can_complete: at_unit_cap)
-      @vehicles << vehicle unless vehicle.nil?
+      powered_unit.energy_provided = power_drain
       @energy -= power_drain
+    end
+
+    @factories.each(&:update)
+    @vehicles.each(&:update)
+
+    @constructions.each do |construction|
+      if construction.built? && unit_count < @unit_cap
+        @constructions.delete(construction)
+        construction.prerender
+        case construction
+        when Factory
+          @factories << construction
+        when Turret
+          @turrets << construction
+        else
+          if construction.class.ancestors.include?(Vehicle)
+            @vehicles << construction
+          else
+            raise "unknown unit construction complete: '#{construction}'"
+          end
+        end
+      end
     end
 
     enemy_vehicles = (other_players.map(&:vehicles) + other_players.map(&:factories) + other_players.map(&:turrets)).flatten
@@ -69,6 +92,7 @@ class Player
     @vehicles.reject! { |v| v.dead }
     @projectiles.reject! { |v| v.dead }
     @turrets.reject! { |v| v.dead }
+    @constructions.reject! { |c| c.dead? }
   end
 
   def render
@@ -88,7 +112,7 @@ class Player
         )
       end
       pretty_build_capacity = @latest_build_capacity == @latest_build_capacity.to_i ? @latest_build_capacity.to_i : @latest_build_capacity
-      @stats_text.text = "#{unit_count}/#{@unit_cap} #{@energy}+#{pretty_build_capacity}"
+      @stats_text.text = "#{unit_count}/#{@unit_cap} #{@energy.floor}+#{pretty_build_capacity}"
       @stats_text.x = (oldest_factory.position[0] - 9.5)
       @stats_text.y = (oldest_factory.position[1] + 14)
     else
@@ -102,7 +126,7 @@ class Player
   end
 
   def units
-    @factories + @vehicles + @turrets
+    @factories + @vehicles + @turrets + @constructions
   end
 
   def update_energy(generators)

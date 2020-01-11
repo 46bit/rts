@@ -14,4 +14,8 @@ class Structure < Entity
     initialize_buildable(max_health: max_health, health: health, built: built, cost: cost)
     initialize_collidable(collision_radius: collision_radius)
   end
+
+  def self.buildable_by_mobile_units?
+    true
+  end
 end

@@ -9,7 +9,7 @@ class Turret < Structure
   attr_reader :update_counter, :star, :health_bar
 
   def initialize(renderer, position, player, built: true)
-    super(renderer, position, player, max_health: 300, built: built, health: built ? 300 : 0, collision_radius: 5)
+    super(renderer, position, player, max_health: 60, built: built, health: built ? 300 : 0, collision_radius: 5)
     @update_counter = 0
     prerender unless HEADLESS
   end
@@ -41,7 +41,7 @@ class Turret < Structure
   end
 
   def prerender
-    @star = @renderer.star(
+    @star ||= @renderer.star(
       x: @position[0],
       y: @position[1],
       radius: RADIUS,
@@ -49,7 +49,7 @@ class Turret < Structure
       opacity: @built ? 1.0 : (0.2 + healthyness * 0.8),
       z: 2,
     )
-    @health_bar = @renderer.line(
+    @health_bar ||= @renderer.line(
       x1: @position[0] - RADIUS,
       y1: @position[1] + RADIUS + 3,
       x2: @position[0] + RADIUS,
@@ -58,7 +58,7 @@ class Turret < Structure
       color: @player.color,
       z: 2,
     )
-    # @range_circle = @renderer.circle(
+    # @range_circle ||= @renderer.circle(
     #   x: @position[0] - RADIUS,
     #   y: @position[1] - RADIUS,
     #   radius: Projectile::MAXIMUM_RANGE,

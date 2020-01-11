@@ -1,6 +1,14 @@
 ManoeuvreOrder = Struct.new(:destination)
 BuildOrder = Struct.new(:unit_class)
-RemoteBuildOrder = Struct.new(:build_position, :unit_class)
+RemoteBuildOrder = Struct.new(:build_position, :unit_class) do
+  def unit=(unit)
+    instance_variable_set('@unit', unit)
+  end
+
+  def unit
+    instance_variable_get('@unit')
+  end
+end
 
 module Orderable
   attr_reader :order_callbacks, :order
@@ -10,7 +18,7 @@ module Orderable
     @order = nil
   end
 
-  def order(order)
+  def order=(order)
     @order = order
   end
 

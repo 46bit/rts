@@ -3,7 +3,7 @@ unit_cap: 200
 world_size: 600
 players:
   - color: green
-    control: attack_nearest_ai
+    control: build_turrets_ai
     factories:
     - x: 65
       y: 65

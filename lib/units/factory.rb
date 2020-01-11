@@ -3,7 +3,7 @@ require_relative '../entities/capabilities/orderable'
 require_relative '../entities/capabilities/engineerable'
 
 FACTORY_ORDER_CALLBACKS = {
-  NilClass => lambda do
+  NilClass => lambda do |o|
     return nil
   end,
   BuildOrder => lambda { |o| build(o) },
@@ -17,7 +17,7 @@ class Factory < Structure
 
   def initialize(renderer, position, player, built: true)
     super(renderer, position, player, max_health: 120, built: built, health: built ? 120 : 0, collision_radius: 15)
-    initialize_engineerable
+    initialize_engineerable(prerender_constructions: false)
     initialize_orderable(FACTORY_ORDER_CALLBACKS)
     prerender unless HEADLESS
   end
@@ -40,27 +40,27 @@ class Factory < Structure
     end
   end
 
-  def update(energy, can_complete: true)
-    return if dead? || under_construction? || !producing?
-    return update_production(energy, can_complete: can_complete)
+  def update
+    return if dead?
+    update_production
   end
 
   def prerender
-    @outline = @renderer.square(
+    @outline ||= @renderer.square(
       x: @position[0] - 9.5,
       y: @position[1] - 9.5,
       size: 19,
       color: @player.color,
       z: 1,
     )
-    @square = @renderer.square(
+    @square ||= @renderer.square(
       x: @position[0] - 7.5,
       y: @position[1] - 7.5,
       size: 15,
       color: 'black',
       z: 2,
     )
-    @progress_square = @renderer.square(
+    @progress_square ||= @renderer.square(
       x: @position[0] - 7.5,
       y: @position[1] - 7.5,
       size: 15,
@@ -68,7 +68,7 @@ class Factory < Structure
       opacity: 0.0,
       z: 3,
     )
-    @health_bar = @renderer.line(
+    @health_bar ||= @renderer.line(
       x1: @position[0] - 9.5,
       y1: @position[1] + 11,
       x2: @position[0] + 9.5,

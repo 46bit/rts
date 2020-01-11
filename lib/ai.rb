@@ -11,6 +11,8 @@ def ai_from_string(name, world_size, generators)
     GuardNearestAI.new
   when "attack_nearest_ai"
     AttackNearestAI.new
+  when "build_turrets_ai"
+    BuildTurretsAI.new
   else
     raise "unknown ai name specified: '#{name}'"
   end
@@ -28,9 +30,11 @@ class GuardNearestAI
       next if vehicle.dead
 
       target = targets.min_by { |t| (t.position - vehicle.position).magnitude }
-      vehicle.order(nil) if target.nil?
-      vehicle.order(ManoeuvreOrder.new(target.position))
-      vehicle.update
+      if target.nil?
+        vehicle.order = nil
+      else
+        vehicle.order = ManoeuvreOrder.new(target.position)
+      end
     end
   end
 end
@@ -56,9 +60,37 @@ class AttackNearestAI
       next if vehicle.dead
 
       target = targets.min_by { |t| (t.position - vehicle.position).magnitude }
-      vehicle.order(nil) if target.nil?
-      vehicle.order(ManoeuvreOrder.new(target.position))
-      vehicle.update
+      if target.nil?
+        vehicle.order = nil
+      else
+        vehicle.order = ManoeuvreOrder.new(target.position)
+      end
+    end
+  end
+end
+
+# AI that focuses on seizing the generator closest to each unit. When it has seized all generators
+# its units swarm enemy units and factories.
+class BuildTurretsAI
+  def update(generators, player, other_players)
+    return if player.factories.empty?
+
+    player.factories.each { |f| f.produce(Bot) }
+
+    build_at = Vector[
+      player.factories[0].position[0] + (1 + player.turrets.length) * 30,
+      player.factories[0].position[1],
+    ]
+    already_building = player.vehicles.select { |v| v.order != nil }[0]
+
+    player.vehicles.each do |vehicle|
+      next if vehicle.dead
+
+      if already_building
+        vehicle.order = already_building.order
+      else
+        vehicle.order = RemoteBuildOrder.new(build_at, Turret)
+      end
     end
   end
 end

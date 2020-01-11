@@ -12,7 +12,7 @@ module Manoeuvrable
     @angular_velocity = angular_velocity
   end
 
-  def update_velocities(turning_angle: 0.0)
+  def update_velocities(turning_angle: 0.0, force_multiplier: 1.0)
     # FIXME: Drag should be applied after acceleration, but based on the previous velocity?
     apply_drag_forces
 
@@ -21,7 +21,7 @@ module Manoeuvrable
       turning_angle
     )
     @angular_velocity += acceleration_forces[0] / @physics.mass
-    @velocity += acceleration_forces[1] / @physics.mass
+    @velocity += acceleration_forces[1] * force_multiplier.to_f / @physics.mass
   end
 
   def update_direction(multiplier: 1.0)

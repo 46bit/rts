@@ -30,7 +30,7 @@ class Tank < Vehicle
   end
 
   def prerender
-    @circle = @renderer.circle(
+    @circle ||= @renderer.circle(
       x: @position[0],
       y: @position[1],
       radius: RADIUS,
@@ -40,7 +40,7 @@ class Tank < Vehicle
     )
     vector_to_point_on_circle = vector_from_magnitude_and_direction(RADIUS, @direction + Math::PI / 2)
     vector_to_front_of_unit = vector_from_magnitude_and_direction(RADIUS + 2, @direction)
-    @square = @renderer.quad(
+    @square ||= @renderer.quad(
       x1: @position[0] + vector_to_point_on_circle[0],
       y1: @position[1] + vector_to_point_on_circle[1],
       x2: @position[0] + vector_to_point_on_circle[0] + vector_to_front_of_unit[0],
@@ -52,7 +52,7 @@ class Tank < Vehicle
       color: @player.color,
       z: 2,
     )
-    @line = @renderer.line(
+    @line ||= @renderer.line(
       x1: @position[0],
       y1: @position[1],
       x2: @position[0] + vector_to_front_of_unit[0],
@@ -61,7 +61,7 @@ class Tank < Vehicle
       color: 'black',
       z: 2,
     )
-    @health_bar = @renderer.line(
+    @health_bar ||= @renderer.line(
       x1: @position[0] - RADIUS,
       y1: @position[1] + RADIUS + 3,
       x2: @position[0] + RADIUS,
