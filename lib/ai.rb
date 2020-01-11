@@ -23,7 +23,7 @@ end
 class GuardNearestAI
   def update(generators, player, other_players)
     if player.factories.empty? && !player.vehicles.empty?
-      new_factory_location = player.constructions.select { |c| c.class == Factory }[0]&.position
+      new_factory_location = player.constructions.select { |c| c.is_a?(Factory) }[0]&.position
       new_factory_location ||= player.vehicles.map { |v| v.position }.inject(:+) / player.vehicles.length
       player.vehicles.each do |vehicle|
         vehicle.order = RemoteBuildOrder.new(new_factory_location, Factory)
@@ -53,7 +53,7 @@ end
 class AttackNearestAI
   def update(generators, player, other_players)
     if player.factories.empty? && !player.vehicles.empty?
-      new_factory_location = player.constructions.select { |c| c.class == Factory }[0]&.position
+      new_factory_location = player.constructions.select { |c| c.is_a?(Factory) }[0]&.position
       new_factory_location ||= player.vehicles.map { |v| v.position }.inject(:+) / player.vehicles.length
       player.vehicles.each do |vehicle|
         vehicle.order = RemoteBuildOrder.new(new_factory_location, Factory)
@@ -92,7 +92,7 @@ end
 class BuildTurretsAI
   def update(generators, player, other_players)
     if player.factories.empty? && !player.vehicles.empty?
-      new_factory_location = player.constructions.select { |c| c.class == Factory }[0]&.position
+      new_factory_location = player.constructions.select { |c| c.is_a?(Factory) }[0]&.position
       new_factory_location ||= player.vehicles.map { |v| v.position }.inject(:+) / player.vehicles.length
       player.vehicles.each do |vehicle|
         vehicle.order = RemoteBuildOrder.new(new_factory_location, Factory)

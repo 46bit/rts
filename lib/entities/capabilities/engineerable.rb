@@ -12,7 +12,7 @@ module Engineerable
     # FIXME: Do override what's in production
     return unless @unit.nil?
     return false unless within_production_range?(position)
-    construction = @player.constructions.select { |u| u.class == unit_class && u.position == position }[0]
+    construction = @player.constructions.select { |u| u.is_a?(unit_class) && u.position == position }[0]
     if construction
       @unit = construction
     else

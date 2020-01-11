@@ -64,7 +64,7 @@ protected
 
   def remote_build(remote_build_order)
     return nil if remote_build_order.unit && (remote_build_order.unit.built? || remote_build_order.unit.dead?)
-    if producing? && @unit.position == remote_build_order.build_position && @unit.class == remote_build_order.unit_class
+    if producing? && @unit.position == remote_build_order.build_position && @unit.is_a?(remote_build_order.unit_class)
       if within_production_range?(remote_build_order.build_position)
         manoeuvre ManoeuvreOrder.new(remote_build_order.build_position), force_multiplier: 0.4
       else
