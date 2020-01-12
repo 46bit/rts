@@ -25,17 +25,20 @@ class Game
     )
   end
 
-  attr_reader :renderer, :generators, :players, :sandbox, :winner
+  attr_reader :renderer, :generators, :players, :sandbox, :update_counter, :winner
 
   def initialize(renderer, generators, players, sandbox: false)
     @renderer = renderer
     @generators = generators
     @players = players
     @sandbox = sandbox
+    @update_counter = 0
     @winner = false
   end
 
   def update
+    @update_counter += 1
+
     units = @players.map(&:units).flatten
     unit_quadtree = Quadtree.from_units(units)
 
@@ -67,7 +70,6 @@ class Game
     if @winner
       exit 0 if Time.now - @win_time > 5
       unless @label
-        exit 0 if HEADLESS
         @label = @renderer.text(
           "#{@winner} wins!",
           x: @renderer.world_size / 2,
@@ -82,6 +84,32 @@ class Game
     end
   end
 
+  def status
+    {
+      update_counter: @update_counter,
+      winner: @winner,
+      players: @players.map do |player|
+        {
+          color: player.color,
+          defeated: player.defeated?,
+          unit_count: player.unit_count,
+        }
+      end
+    }
+  end
+
+  def status_text
+    %(---
+update_counter: #{@update_counter}
+winner: #{@winner}
+players:
+) + players.map do |player|
+      %(- color: #{player.color}
+  defeated: #{player.defeated?}
+  unit_count: #{player.unit_count})
+    end.join("\n")
+  end
+
 protected
 
   def check_for_winner
@@ -94,10 +122,7 @@ protected
       @winner = undefeated_players[0].color
     end
 
-    if @winner
-      puts "#{@winner} wins!"
-      @win_time = Time.now
-    end
+    @win_time = Time.now if @winner
   end
 
   def remove_killed_vehicles

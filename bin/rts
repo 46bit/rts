@@ -22,6 +22,7 @@ set(
 update do
   game.update
   game.render
+  STDERR.puts game.status_text
 end
 
 on :mouse_scroll do |event|

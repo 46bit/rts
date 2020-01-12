@@ -13,4 +13,6 @@ game = Game.from_config(config, screen_size: 800)
 
 loop do
   game.update
+  STDERR.puts game.status_text
+  break if game.winner
 end
