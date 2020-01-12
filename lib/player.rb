@@ -42,9 +42,13 @@ class Player
   end
 
   def update(generators, other_players)
-    return if defeated?
-
     remove_dead_units
+
+    if defeated?
+      @constructions.each(&:kill)
+      @constructions = []
+      return
+    end
 
     update_energy_generation(generators)
     update_energy_consumption
