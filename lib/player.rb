@@ -142,7 +142,7 @@ protected
       next if !construction.built?
 
       @constructions.delete(construction)
-      construction.prerender
+      construction.prerender unless HEADLESS
       case construction
       when Factory
         @factories << construction

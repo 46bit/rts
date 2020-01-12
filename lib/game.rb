@@ -1,4 +1,8 @@
-require_relative './renderer/renderer'
+if HEADLESS
+  require_relative './renderer/headless'
+else
+  require_relative './renderer/renderer'
+end
 require_relative './units/generator'
 require_relative './player'
 require_relative './quadtree'

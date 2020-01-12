@@ -1,9 +1,9 @@
 #!/usr/bin/env ruby
 
+HEADLESS = true
+
 require 'yaml'
 require_relative '../lib/game'
-
-HEADLESS = true
 
 config_path = ARGV[0]
 raise "config path not specified" if config_path.nil?

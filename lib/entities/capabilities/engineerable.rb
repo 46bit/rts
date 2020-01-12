@@ -23,7 +23,7 @@ module Engineerable
         built: false,
         **kargs,
       )
-      @unit.prerender if @prerender_constructions
+      @unit.prerender if !HEADLESS && @prerender_constructions
       @player.constructions << @unit
     end
   end

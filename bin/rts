@@ -1,10 +1,10 @@
 #!/usr/bin/env ruby
 
+HEADLESS = false
+
 require 'yaml'
 require 'ruby2d'
 require_relative '../lib/game'
-
-HEADLESS = false
 
 config_path = ARGV[0]
 raise "config path not specified" if config_path.nil?
