@@ -1,0 +1,10 @@
+os: osx
+osx_image: xcode10.2
+language: ruby
+rvm:
+  - 2.6.4
+  - 2.5.3
+before_install:
+  - bundle install
+script:
+  - bundle exec rubocop
