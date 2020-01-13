@@ -20,7 +20,7 @@ class Player
   end
 
   attr_reader :color, :control, :unit_cap, :base_generation_capacity, :renderer
-  attr_accessor :energy, :factories, :vehicles, :turrets, :projectiles, :constructions, :commander
+  attr_accessor :energy, :factories, :vehicles, :turrets, :projectiles, :constructions, :commander, :enemy_units
 
   def initialize(color, control, renderer, commander_position, unit_cap: Float::INFINITY, base_generation_capacity: 5)
     @color = color
@@ -40,6 +40,7 @@ class Player
       self,
     )
     @vehicles << @commander
+    @enemy_units = []
   end
 
   def update(generators, other_players)
@@ -50,6 +51,8 @@ class Player
       @constructions = []
       return
     end
+
+    @enemy_units = other_players.map(&:units).flatten
 
     update_energy_generation(generators)
     update_energy_consumption

@@ -9,6 +9,9 @@ RemoteBuildOrder = Struct.new(:build_position, :unit_class) do
     instance_variable_get("@unit")
   end
 end
+AttackOrder = Struct.new(:target_unit)
+PatrolLocationOrder = Struct.new(:position, :range)
+GuardOrder = Struct.new(:unit, :range, :attack_range)
 
 module Orderable
   attr_reader :order_callbacks, :order
@@ -24,7 +27,7 @@ module Orderable
 
   def update_orders
     callback = @order_callbacks[@order.class]
-    raise "unexpected order type: #{@order.inspect}" if callback.nil?
+    raise "unexpected order type for #{self}: #{@order.inspect}" if callback.nil?
 
     @order = instance_exec(@order, &callback)
   end

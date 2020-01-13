@@ -11,6 +11,9 @@ DEFAULT_VEHICLE_ORDER_CALLBACKS = {
     return nil
   end,
   ManoeuvreOrder => lambda { |o| manoeuvre(o) },
+  AttackOrder => lambda { |o| attack(o) },
+  PatrolLocationOrder => lambda { |o| patrol_location(o) },
+  GuardOrder => lambda { |o| guard(o) },
 }.freeze
 
 class Vehicle < Entity
@@ -20,7 +23,7 @@ class Vehicle < Entity
   include Collidable
   include Manoeuvrable
 
-  attr_reader :order
+  attr_reader :order, :movement_rate, :turn_rate
 
   def initialize(renderer, position, player, max_health:, health: nil, built: false, cost: max_health * 10, direction: rand * Math::PI * 2, physics: DEFAULT_PHYSICS, turn_rate: 1.0, movement_rate: 1.0, collision_radius:, order_callbacks: DEFAULT_VEHICLE_ORDER_CALLBACKS)
     super(renderer, position)
@@ -57,5 +60,41 @@ protected
       update_velocities(turning_angle: 0.0, force_multiplier: force_multiplier)
     end
     manoeuvre_order
+  end
+
+  def attack(attack_order)
+    target_unit = attack_order.target_unit
+    return nil if target_unit && target_unit.respond_to?(:dead?) && target_unit.dead?
+
+    manoeuvre(ManoeuvreOrder.new(target_unit.position))
+    attack_order
+  end
+
+  def patrol_location(patrol_location_order)
+    if (patrol_location_order.position - @position).magnitude <= patrol_location_order.range
+      manoeuvre ManoeuvreOrder.new(patrol_location_order.position), force_multiplier: 0.4
+    else
+      manoeuvre(ManoeuvreOrder.new(patrol_location_order.position))
+    end
+  end
+
+  def guard(guard_order)
+    if guard_order.unit.is_a?(Vector)
+      guarding_position = guard_order.unit
+    else
+      if guard_order.unit.player != @player
+        attack AttackOrder.new(guard_order.unit)
+        return guard_order
+      end
+      guarding_position = guard_order.unit.position
+    end
+
+    nearest_enemy_unit = @player.enemy_units.min_by { |u| (u.position - @position).magnitude }
+    if nearest_enemy_unit && (nearest_enemy_unit.position - @position).magnitude <= guard_order.attack_range
+      attack AttackOrder.new(nearest_enemy_unit)
+    else
+      patrol_location PatrolLocationOrder.new(guarding_position, guard_order.range)
+    end
+    guard_order
   end
 end

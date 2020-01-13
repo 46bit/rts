@@ -69,10 +69,10 @@ protected
 
     if producing? && @unit.position == remote_build_order.build_position && @unit.is_a?(remote_build_order.unit_class)
       if within_production_range?(remote_build_order.build_position)
-        manoeuvre ManoeuvreOrder.new(remote_build_order.build_position), force_multiplier: 0.4
+        patrol_location PatrolLocationOrder.new(remote_build_order.build_position, @production_range)
       else
         @unit = nil
-        manoeuvre(ManoeuvreOrder.new(remote_build_order.build_position))
+        manoeuvre ManoeuvreOrder.new(remote_build_order.build_position)
       end
     elsif within_production_range?(remote_build_order.build_position)
       unit_class = remote_build_order.unit_class
@@ -82,8 +82,9 @@ protected
 
       produce(remote_build_order.unit_class, position: remote_build_order.build_position)
       remote_build_order.unit = @unit
+      patrol_location PatrolLocationOrder.new(remote_build_order.build_position, @production_range)
     else
-      manoeuvre(ManoeuvreOrder.new(remote_build_order.build_position))
+      return nil
     end
     remote_build_order
   end
