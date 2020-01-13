@@ -1,4 +1,4 @@
-require_relative '../entities/engineer'
+require_relative "../entities/engineer"
 
 class Commander < Engineer
   RADIUS = 7.0
@@ -14,7 +14,7 @@ class Commander < Engineer
       built: true,
       direction: direction,
       movement_rate: 0.03,
-      turn_rate: 2.0/3.0,
+      turn_rate: 2.0 / 3.0,
       collision_radius: 8.0,
       production_range: 35.0,
       prerender_constructions: true,
@@ -25,6 +25,7 @@ class Commander < Engineer
   def kill
     super
     return if HEADLESS
+
     @star.remove if @star
     @circle.remove if @circle
     @line.remove if @line
@@ -44,7 +45,7 @@ class Commander < Engineer
       x: @position[0],
       y: @position[1],
       radius: RADIUS / 2.0,
-      color: 'black',
+      color: "black",
       z: 2,
     )
     v = vector_from_magnitude_and_direction(RADIUS * 1.5, @direction)
@@ -54,7 +55,7 @@ class Commander < Engineer
       x2: @position[0] + v[0],
       y2: @position[1] + v[1],
       width: 4,
-      color: 'black',
+      color: "black",
       z: 2,
     )
     @health_bar ||= @renderer.line(

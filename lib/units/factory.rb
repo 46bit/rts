@@ -1,13 +1,13 @@
-require_relative '../entities/structure'
-require_relative '../entities/capabilities/orderable'
-require_relative '../entities/capabilities/engineerable'
+require_relative "../entities/structure"
+require_relative "../entities/capabilities/orderable"
+require_relative "../entities/capabilities/engineerable"
 
 FACTORY_ORDER_CALLBACKS = {
-  NilClass => lambda do |o|
+  NilClass => lambda do |_o|
     return nil
   end,
   BuildOrder => lambda { |o| build(o) },
-}
+}.freeze
 
 class Factory < Structure
   include Orderable
@@ -42,6 +42,7 @@ class Factory < Structure
 
   def update
     return if dead?
+
     update_production
   end
 
@@ -57,7 +58,7 @@ class Factory < Structure
       x: @position[0] - 7.5,
       y: @position[1] - 7.5,
       size: 15,
-      color: 'black',
+      color: "black",
       z: 2,
     )
     @progress_square ||= @renderer.square(
@@ -97,6 +98,6 @@ protected
 
   def build(build_order)
     produce(build_order.unit_class)
-    return build_order
+    build_order
   end
 end

@@ -1,4 +1,4 @@
-require_relative './killable'
+require_relative "./killable"
 
 module Buildable
   include Killable

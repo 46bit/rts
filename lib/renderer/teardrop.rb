@@ -1,4 +1,4 @@
-require_relative '../utils'
+require_relative "../utils"
 
 # FIXME: Make more parameters editable
 class RenderTeardrop

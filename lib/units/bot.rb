@@ -1,4 +1,4 @@
-require_relative '../entities/engineer'
+require_relative "../entities/engineer"
 
 class Bot < Engineer
   RADIUS = 5.0
@@ -14,7 +14,7 @@ class Bot < Engineer
       built: built,
       direction: direction,
       movement_rate: 0.1,
-      turn_rate: 4.0/3.0,
+      turn_rate: 4.0 / 3.0,
       collision_radius: 5.0,
       production_range: 25.0,
       prerender_constructions: true,
@@ -25,6 +25,7 @@ class Bot < Engineer
   def kill
     super
     return if HEADLESS
+
     @circle.remove if @circle
     @line.remove if @line
   end
@@ -46,7 +47,7 @@ class Bot < Engineer
       x2: @position[0] + v[0],
       y2: @position[1] + v[1],
       width: 3,
-      color: 'black',
+      color: "black",
       z: 2,
     )
   end

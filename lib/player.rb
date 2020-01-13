@@ -1,11 +1,12 @@
-require_relative './ai'
-require_relative './units/commander'
+require_relative "./ai"
+require_relative "./units/commander"
 
 class Player
   def self.from_config(player_config, unit_cap, renderer, generators)
     # FIXME: generators shouldn't be passed here. rethink the AI structure.
     ai = ai_from_string(player_config["control"], renderer.world_size, generators)
-    raise "no AI found for player configured to use '#{player_config["control"]}'" unless ai
+    raise "no AI found for player configured to use '#{player_config['control']}'" unless ai
+
     Player.new(
       player_config["color"],
       ai,
@@ -97,21 +98,21 @@ class Player
   end
 
   def defeated?
-    unit_count == 0 && @projectiles.empty?
+    unit_count.zero? && @projectiles.empty?
   end
 
 protected
 
   def remove_dead_units
-    @vehicles.reject! { |v| v.dead? }
-    @projectiles.reject! { |v| v.dead? }
-    @turrets.reject! { |v| v.dead? }
-    @constructions.reject! { |c| c.dead? }
+    @vehicles.reject!(&:dead?)
+    @projectiles.reject!(&:dead?)
+    @turrets.reject!(&:dead?)
+    @constructions.reject!(&:dead?)
   end
 
   def update_energy_generation(generators)
     owned_generators = generators.select { |g| g.owner?(self) }
-    owned_generation_capacity = owned_generators.map { |g| g.capacity }.sum
+    owned_generation_capacity = owned_generators.map(&:capacity).sum
     @latest_build_capacity = @base_generation_capacity.to_f + owned_generation_capacity
     @energy += @latest_build_capacity
   end
@@ -127,7 +128,6 @@ protected
       power_per_unit = @energy / powered_units.length
       power_drains.transform_values! { power_per_unit }
     end
-    at_unit_cap =  unit_count < @unit_cap
     powered_units.each do |powered_unit|
       # FIXME: do something with unused_build_capacity
       power_drain = power_drains[powered_unit.object_id]
@@ -150,6 +150,7 @@ protected
         @turrets << construction
       else
         raise "unknown unit construction complete: '#{construction}'" unless construction.class.ancestors.include?(Vehicle)
+
         @vehicles << construction
       end
     end

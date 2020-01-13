@@ -1,17 +1,17 @@
-require_relative './entity'
-require_relative './capabilities/ownable'
-require_relative './capabilities/orderable'
-require_relative './capabilities/buildable'
-require_relative './capabilities/collidable'
-require_relative './capabilities/manoeuvrable'
+require_relative "./entity"
+require_relative "./capabilities/ownable"
+require_relative "./capabilities/orderable"
+require_relative "./capabilities/buildable"
+require_relative "./capabilities/collidable"
+require_relative "./capabilities/manoeuvrable"
 
 DEFAULT_VEHICLE_ORDER_CALLBACKS = {
-  NilClass => lambda do |o|
+  NilClass => lambda do |_o|
     apply_drag_forces
     return nil
   end,
   ManoeuvreOrder => lambda { |o| manoeuvre(o) },
-}
+}.freeze
 
 class Vehicle < Entity
   include Ownable
@@ -56,6 +56,6 @@ protected
     else
       update_velocities(turning_angle: 0.0, force_multiplier: force_multiplier)
     end
-    return manoeuvre_order
+    manoeuvre_order
   end
 end

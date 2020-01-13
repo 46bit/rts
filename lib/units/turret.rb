@@ -1,6 +1,6 @@
-require_relative '../utils'
-require_relative '../entities/structure'
-require_relative '../entities/projectile'
+require_relative "../utils"
+require_relative "../entities/structure"
+require_relative "../entities/projectile"
 
 class Turret < Structure
   FIRING_RATE = 5
@@ -30,7 +30,7 @@ class Turret < Structure
       projectile_angle = angle_to_nearest_enemy(enemies)
       unless projectile_angle.nil?
         @update_counter = 0
-        return TurretProjectile.new(
+        TurretProjectile.new(
           @renderer,
           @position,
           projectile_angle,
@@ -87,10 +87,10 @@ protected
       enemies
         .map { |v| v.position - @position }
         .reject { |d| d.magnitude >= TurretProjectile::RANGE }
-        .min_by { |d| d.magnitude }
+        .min_by(&:magnitude)
 
     unless vector_to_nearest_enemy.nil?
-      return Math.atan2(vector_to_nearest_enemy[0], vector_to_nearest_enemy[1])
+      Math.atan2(vector_to_nearest_enemy[0], vector_to_nearest_enemy[1])
     end
   end
 end

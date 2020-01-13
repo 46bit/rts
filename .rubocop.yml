@@ -4,3 +4,13 @@ inherit_gem:
 AllCops:
   Exclude:
     - 'vendor/**/*'
+
+# This check made lots of false positives where `prerender` methods
+# used `||=` to avoid creating duplicate shapes.
+Naming/MemoizedInstanceVariableName:
+  Enabled: false
+
+# It is unreasonable to forbid single-character variable names. For a
+# game, a lot of the time `x`, `y`, etc are good names.
+Naming/MethodParameterName:
+  Enabled: false

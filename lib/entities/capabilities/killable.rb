@@ -34,6 +34,6 @@ module Killable
 
   def damage(damage_amount)
     @health = [@health - damage_amount, 0].max
-    kill if @health == 0
+    kill if @health.zero?
   end
 end

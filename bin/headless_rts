@@ -2,17 +2,18 @@
 
 HEADLESS = true
 
-require 'yaml'
-require_relative '../lib/game'
+require "yaml"
+require_relative "../lib/game"
 
 config_path = ARGV[0]
 raise "config path not specified" if config_path.nil?
-raise "config path not found" unless File.exists?(config_path)
+raise "config path not found" unless File.exist?(config_path)
+
 config = YAML.safe_load(File.read(config_path))
 game = Game.from_config(config, screen_size: 800)
 
 loop do
   game.update
-  STDERR.puts game.status_text
+  warn game.status_text
   break if game.winner
 end

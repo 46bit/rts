@@ -1,4 +1,4 @@
-require_relative '../entities/location'
+require_relative "../entities/location"
 
 class Generator < Location
   def self.from_config(generator_config, renderer)
@@ -24,8 +24,8 @@ class Generator < Location
 
   def prerender
     top_corner = vector_from_magnitude_and_direction(RADIUS, -Math::PI)
-    bottom_right_corner = vector_from_magnitude_and_direction(RADIUS, -Math::PI/3.0)
-    bottom_left_corner = vector_from_magnitude_and_direction(RADIUS, Math::PI/3.0)
+    bottom_right_corner = vector_from_magnitude_and_direction(RADIUS, -Math::PI / 3.0)
+    bottom_left_corner = vector_from_magnitude_and_direction(RADIUS, Math::PI / 3.0)
     @triangle ||= @renderer.triangle(
       x1: @position[0] + top_corner[0],
       y1: @position[1] + top_corner[1],
@@ -33,7 +33,7 @@ class Generator < Location
       y2: @position[1] + bottom_right_corner[1],
       x3: @position[0] + bottom_left_corner[0],
       y3: @position[1] + bottom_left_corner[1],
-      color: 'white',
+      color: "white",
       z: 1,
     )
     @target_circle ||= @renderer.circle(
@@ -48,13 +48,13 @@ class Generator < Location
       x: @position[0],
       y: @position[1] + RADIUS + 2.0,
       size: 10,
-      color: 'white',
+      color: "white",
       z: 1,
     )
     @label.align_centre
   end
 
   def render
-    @triangle.color = occupied? ? @player.color : 'white'
+    @triangle.color = occupied? ? @player.color : "white"
   end
 end

@@ -1,7 +1,7 @@
-require_relative './entity'
-require_relative './capabilities/ownable'
-require_relative './capabilities/buildable'
-require_relative './capabilities/collidable'
+require_relative "./entity"
+require_relative "./capabilities/ownable"
+require_relative "./capabilities/buildable"
+require_relative "./capabilities/collidable"
 
 class Structure < Entity
   include Ownable

@@ -8,7 +8,9 @@ Physics = Struct.new(
   :rolling_resistance_coefficient,
   # This one isn't well-founded at all. We might want to model dynamics–angular momentum.
   :turn_coefficient,
-) do
+)
+
+class Physics
   def normal_force
     mass * 9.81
   end
@@ -32,7 +34,8 @@ Physics = Struct.new(
   def rolling_resistance_forces(velocity, angular_velocity)
     per_unit = rolling_resistance.to_f / (velocity.abs + angular_velocity.abs)
     return Vector[0, 0] if per_unit.infinite?
-    return Vector[
+
+    Vector[
       velocity * per_unit,
       angular_velocity * per_unit,
     ]

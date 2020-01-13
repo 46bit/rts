@@ -1,4 +1,4 @@
-require_relative '../entities/vehicle'
+require_relative "../entities/vehicle"
 
 class Tank < Vehicle
   RADIUS = 8.0
@@ -14,7 +14,7 @@ class Tank < Vehicle
       built: built,
       direction: direction,
       movement_rate: 0.05,
-      turn_rate: 4.0/6.0,
+      turn_rate: 4.0 / 6.0,
       collision_radius: 8.0,
     )
     prerender unless HEADLESS || !built
@@ -23,6 +23,7 @@ class Tank < Vehicle
   def kill
     super
     return if HEADLESS
+
     @circle.remove if @circle
     @square.remove if @square
     @line.remove if @line
@@ -58,7 +59,7 @@ class Tank < Vehicle
       x2: @position[0] + vector_to_front_of_unit[0],
       y2: @position[1] + vector_to_front_of_unit[1],
       width: RADIUS / 2.0,
-      color: 'black',
+      color: "black",
       z: 2,
     )
     @health_bar ||= @renderer.line(

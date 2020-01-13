@@ -1,5 +1,5 @@
-require_relative '../physics'
-require_relative './movable'
+require_relative "../physics"
+require_relative "./movable"
 
 module Manoeuvrable
   include Movable
@@ -18,7 +18,7 @@ module Manoeuvrable
 
     acceleration_forces = vector_from_magnitude_and_direction(
       @physics.max_acceleration_force,
-      turning_angle
+      turning_angle,
     )
     @angular_velocity += acceleration_forces[0] / @physics.mass
     @velocity += acceleration_forces[1] * force_multiplier.to_f / @physics.mass
@@ -33,13 +33,13 @@ module Manoeuvrable
 
   def turn_left_to_reach?(destination)
     offset = destination - @position
-    distance, angle = magnitude_and_direction_from_vector(offset)
+    _, angle = magnitude_and_direction_from_vector(offset)
     (@direction - angle) % (Math::PI * 2) > Math::PI
   end
 
   def turn_right_to_reach?(destination)
     offset = destination - @position
-    distance, angle = magnitude_and_direction_from_vector(offset)
+    _, angle = magnitude_and_direction_from_vector(offset)
     (@direction - angle) % (Math::PI * 2) < Math::PI
   end
 
@@ -47,7 +47,7 @@ protected
 
   def drag_force(force, velocity)
     drag_force = [force.abs, @physics.momentum(velocity.abs)].min
-    return drag_force * sign_of(velocity)
+    drag_force * sign_of(velocity)
   end
 
   def apply_drag_forces

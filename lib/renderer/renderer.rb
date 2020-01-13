@@ -1,7 +1,7 @@
-require_relative './shapes'
-require_relative './star'
-require_relative './teardrop'
-require_relative './camera'
+require_relative "./shapes"
+require_relative "./star"
+require_relative "./teardrop"
+require_relative "./camera"
 
 class Renderer
   attr_reader :screen_size, :world_size, :scale_multiplier, :shapes

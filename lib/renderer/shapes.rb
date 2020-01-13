@@ -1,4 +1,4 @@
-require_relative './ruby2d_shape'
+require_relative "./ruby2d_shape"
 
 class RenderCircle < Ruby2DShape
   SHAPE = Circle

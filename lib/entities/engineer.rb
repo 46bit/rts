@@ -1,9 +1,9 @@
-require_relative '../entities/vehicle'
-require_relative './capabilities/engineerable'
+require_relative "../entities/vehicle"
+require_relative "./capabilities/engineerable"
 
-DEFAULT_ENGINEER_ORDER_CALLBACKS = DEFAULT_VEHICLE_ORDER_CALLBACKS.merge({
+DEFAULT_ENGINEER_ORDER_CALLBACKS = DEFAULT_VEHICLE_ORDER_CALLBACKS.merge(
   RemoteBuildOrder => lambda { |o| remote_build(o) },
-})
+)
 
 # FIXME: I think this should be an extension of the `Engineer` capability, not a class.
 class Engineer < Vehicle
@@ -57,6 +57,7 @@ class Engineer < Vehicle
 
   def update
     return if dead?
+
     super
     update_production
   end
@@ -65,6 +66,7 @@ protected
 
   def remote_build(remote_build_order)
     return nil if remote_build_order.unit && (remote_build_order.unit.built? || remote_build_order.unit.dead?)
+
     if producing? && @unit.position == remote_build_order.build_position && @unit.is_a?(remote_build_order.unit_class)
       if within_production_range?(remote_build_order.build_position)
         manoeuvre ManoeuvreOrder.new(remote_build_order.build_position), force_multiplier: 0.4
@@ -72,18 +74,17 @@ protected
         @unit = nil
         manoeuvre(ManoeuvreOrder.new(remote_build_order.build_position))
       end
-    else
-      if within_production_range?(remote_build_order.build_position)
-        unit_class = remote_build_order.unit_class
-        if !unit_class.respond_to?(:buildable_by_mobile_units?) || !unit_class.buildable_by_mobile_units?
-          raise "told to construct '#{remote_build_order}' but it is not buildable by module units"
-        end
-        produce(remote_build_order.unit_class, position: remote_build_order.build_position)
-        remote_build_order.unit = @unit
-      else
-        manoeuvre(ManoeuvreOrder.new(remote_build_order.build_position))
+    elsif within_production_range?(remote_build_order.build_position)
+      unit_class = remote_build_order.unit_class
+      if !unit_class.respond_to?(:buildable_by_mobile_units?) || !unit_class.buildable_by_mobile_units?
+        raise "told to construct '#{remote_build_order}' but it is not buildable by module units"
       end
+
+      produce(remote_build_order.unit_class, position: remote_build_order.build_position)
+      remote_build_order.unit = @unit
+    else
+      manoeuvre(ManoeuvreOrder.new(remote_build_order.build_position))
     end
-    return remote_build_order
+    remote_build_order
   end
 end

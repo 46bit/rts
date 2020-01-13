@@ -1,7 +1,7 @@
 class Ruby2DShape
   def self.attr_shape_static(*attr_names)
     attr_names.each do |attr_name|
-      self.define_method("#{attr_name}") do
+      self.define_method(attr_name.to_s) do
         @shape.public_send(attr_name)
       end
 
@@ -26,7 +26,7 @@ class Ruby2DShape
     self.record_shape_attrs(attr_type, attr_names)
 
     attr_names.each do |attr_name|
-      define_method("#{attr_name}") do
+      define_method(attr_name.to_s) do
         @shape_values.dig(attr_type, attr_name)
       end
 

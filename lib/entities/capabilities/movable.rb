@@ -1,4 +1,4 @@
-require_relative '../../utils'
+require_relative "../../utils"
 
 module Movable
   attr_reader :velocity, :direction
@@ -17,6 +17,6 @@ module Movable
   end
 
   def going_east?
-    @direction > 0
+    @direction.positive?
   end
 end

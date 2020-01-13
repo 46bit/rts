@@ -1,7 +1,7 @@
-require_relative './entity'
-require_relative './capabilities/movable'
-require_relative './capabilities/killable'
-require_relative './capabilities/collidable'
+require_relative "./entity"
+require_relative "./capabilities/movable"
+require_relative "./capabilities/killable"
+require_relative "./capabilities/collidable"
 
 class Projectile < Entity
   include Ownable
@@ -44,12 +44,14 @@ class Projectile < Entity
 
   def update
     return if dead?
+
     update_position
     kill if (@position - @start_position).magnitude > @range
   end
 
   def render
     return if @dead
+
     @teardrop.x = @position[0]
     @teardrop.y = @position[1]
   end

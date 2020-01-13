@@ -2,19 +2,20 @@
 
 HEADLESS = false
 
-require 'yaml'
-require 'ruby2d'
-require_relative '../lib/game'
+require "yaml"
+require "ruby2d"
+require_relative "../lib/game"
 
 config_path = ARGV[0]
 raise "config path not specified" if config_path.nil?
-raise "config path not found" unless File.exists?(config_path)
+raise "config path not found" unless File.exist?(config_path)
+
 config = YAML.safe_load(File.read(config_path))
 game = Game.from_config(config, screen_size: 800)
 camera = SimpleCamera.new(game.renderer)
 
 set(
-  title: 'github.com/46bit/rts',
+  title: "github.com/46bit/rts",
   width: game.renderer.screen_size,
   height: game.renderer.screen_size,
 )
@@ -22,11 +23,11 @@ set(
 update do
   game.update
   game.render
-  STDERR.puts game.status_text
+  warn game.status_text
 end
 
 on :mouse_scroll do |event|
-  camera.zoom(event.delta_y > 0) unless event.delta_y.zero?
+  camera.zoom(event.delta_y.positive?) unless event.delta_y.zero?
 end
 
 on :key_held do |event|
