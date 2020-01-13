@@ -34,52 +34,63 @@ class Game
     @sandbox = sandbox
     @update_counter = 0
     @winner = false
+    @latest_update_duration = nil
+    @latest_game_update_duration = nil
+    @latest_players_update_duration = nil
   end
 
   def update
-    @update_counter += 1
+    @latest_update_duration = time do
+      @update_counter += 1
 
-    units = @players.map(&:units).flatten
-    unit_quadtree = Quadtree.from_units(units)
+      @latest_game_update_duration = time do
+        units = @players.map(&:units).flatten
+        unit_quadtree = Quadtree.from_units(units)
 
-    damage_enemy_things_that_projectiles_collide_with(unit_quadtree)
-    remove_killed_projectiles
-    capture_generators_and_damage_capturing_vehicles(unit_quadtree)
-    remove_killed_vehicles
-    damage_colliding_units(unit_quadtree)
-    remove_killed_vehicles
-    remove_killed_factories
+        damage_enemy_things_that_projectiles_collide_with(unit_quadtree)
+        remove_killed_projectiles
+        capture_generators_and_damage_capturing_vehicles(unit_quadtree)
+        remove_killed_vehicles
+        damage_colliding_units(unit_quadtree)
+        remove_killed_vehicles
+        remove_killed_factories
+      end
 
-    @players.each do |player|
-      player.update(@generators, @players - [player])
+      @latest_players_update_duration = time do
+        @players.each do |player|
+          player.update(@generators, @players - [player])
+        end
+        remove_killed_vehicles
+        remove_killed_projectiles
+      end
+
+      @generators.each do |generator|
+        generator.player = nil if generator.player && generator.player.defeated?
+      end
+
+      check_for_winner unless @sandbox || @winner
     end
-    remove_killed_vehicles
-    remove_killed_projectiles
-
-    @generators.each do |generator|
-      generator.player = nil if generator.player && generator.player.defeated?
-    end
-
-    check_for_winner unless @sandbox || @winner
   end
 
   def render
-    @generators.each(&:render)
-    @players.each(&:render)
+    @latest_render_duration = time do
+      @generators.each(&:render)
+      @players.each(&:render)
 
-    if @winner
-      exit 0 if Time.now - @win_time > 5
-      unless @label
-        @label = @renderer.text(
-          "#{@winner} wins!",
-          x: @renderer.world_size / 2,
-          y: @renderer.world_size / 2,
-          size: 100,
-          color: "white",
-          z: 10,
-        )
-        @label.align_centre
-        @label.align_middle
+      if @winner
+        exit 0 if Time.now - @win_time > 5
+        unless @label
+          @label = @renderer.text(
+            "#{@winner} wins!",
+            x: @renderer.world_size / 2,
+            y: @renderer.world_size / 2,
+            size: 100,
+            color: "white",
+            z: 10,
+          )
+          @label.align_centre
+          @label.align_middle
+        end
       end
     end
   end
@@ -102,12 +113,18 @@ class Game
     text = %(---
 update_counter: #{@update_counter}
 winner: #{@winner}
+update_duration: #{@latest_update_duration}
+render_duration: #{@latest_render_duration}
+game_update_duration: #{@latest_game_update_duration}
+players_update_duration: #{@latest_players_update_duration}
 players:)
     players.each do |player|
       text += %(
 - color: #{player.color}
   defeated: #{player.defeated?}
-  unit_count: #{player.unit_count})
+  unit_count: #{player.unit_count}
+  update_duration: #{player.latest_update_duration}
+  render_duration: #{player.latest_render_duration})
     end
     text
   end

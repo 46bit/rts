@@ -15,3 +15,9 @@ end
 def to_degrees(radians)
   radians / Math::PI * 180
 end
+
+def time
+  t = Time.now
+  yield
+  Time.now - t
+end

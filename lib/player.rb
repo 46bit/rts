@@ -1,3 +1,4 @@
+require_relative "./utils"
 require_relative "./ai"
 require_relative "./units/commander"
 
@@ -19,7 +20,7 @@ class Player
     )
   end
 
-  attr_reader :color, :control, :unit_cap, :base_generation_capacity, :renderer
+  attr_reader :color, :control, :unit_cap, :base_generation_capacity, :renderer, :latest_build_capacity, :latest_update_duration, :latest_render_duration
   attr_accessor :energy, :factories, :vehicles, :turrets, :projectiles, :constructions, :commander, :enemy_units
 
   def initialize(color, control, renderer, commander_position, unit_cap: Float::INFINITY, base_generation_capacity: 5)
@@ -28,6 +29,7 @@ class Player
     @renderer = renderer
     @unit_cap = unit_cap
     @base_generation_capacity = base_generation_capacity
+    @latest_build_capacity = base_generation_capacity
     @energy = 0.0
     @factories = []
     @vehicles = []
@@ -41,54 +43,60 @@ class Player
     )
     @vehicles << @commander
     @enemy_units = []
+    @latest_update_duration = nil
+    @latest_render_duration = nil
   end
 
   def update(generators, other_players)
-    remove_dead_units
+    @latest_update_duration = time do
+      remove_dead_units
 
-    if defeated?
-      @constructions.each(&:kill)
-      @constructions = []
-      return
+      if defeated?
+        @constructions.each(&:kill)
+        @constructions = []
+        return
+      end
+
+      @enemy_units = other_players.map(&:units).flatten
+
+      update_energy_generation(generators)
+      update_energy_consumption
+      @factories.each(&:update)
+      @vehicles.each(&:update)
+      update_constructions
+      update_turrets_and_projectiles(other_players)
+      remove_dead_units
+
+      @control.update(generators, self, other_players)
+      remove_dead_units
     end
-
-    @enemy_units = other_players.map(&:units).flatten
-
-    update_energy_generation(generators)
-    update_energy_consumption
-    @factories.each(&:update)
-    @vehicles.each(&:update)
-    update_constructions
-    update_turrets_and_projectiles(other_players)
-    remove_dead_units
-
-    @control.update(generators, self, other_players)
-    remove_dead_units
   end
 
   def render
-    @factories.each(&:render)
-    @vehicles.each(&:render)
-    @turrets.each(&:render)
-    @projectiles.each(&:render)
+    @latest_render_duration = time do
+      @factories.each(&:render)
+      @vehicles.each(&:render)
+      @turrets.each(&:render)
+      @projectiles.each(&:render)
 
-    oldest_factory = @factories[0]
-    if oldest_factory
-      if @stats_text.nil?
-        @stats_text = @renderer.text(
-          "",
-          size: 8,
-          color: @color,
-          z: 2,
-        )
+      oldest_factory = @factories[0]
+      if oldest_factory
+        if @stats_text.nil?
+          @stats_text = @renderer.text(
+            "",
+            size: 8,
+            color: @color,
+            z: 2,
+          )
+        end
+        pretty_build_capacity = @latest_build_capacity == @latest_build_capacity.to_i ? @latest_build_capacity.to_i : @latest_build_capacity
+        @stats_text.text = "#{unit_count}/#{@unit_cap} #{@energy.round}+#{pretty_build_capacity}"
+        @stats_text.x = (oldest_factory.position[0] - 9.5)
+        @stats_text.y = (oldest_factory.position[1] + 14)
+      else
+        @stats_text.remove unless @stats_text.nil?
+        @stats_text = nil
       end
-      pretty_build_capacity = @latest_build_capacity == @latest_build_capacity.to_i ? @latest_build_capacity.to_i : @latest_build_capacity
-      @stats_text.text = "#{unit_count}/#{@unit_cap} #{@energy.round}+#{pretty_build_capacity}"
-      @stats_text.x = (oldest_factory.position[0] - 9.5)
-      @stats_text.y = (oldest_factory.position[1] + 14)
-    else
-      @stats_text.remove unless @stats_text.nil?
-      @stats_text = nil
     end
   end
 
