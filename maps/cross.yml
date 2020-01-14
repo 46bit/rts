@@ -10,7 +10,7 @@ players:
     control: attack_nearest_ai
     x: 535
     y: 65
-  - color: yellow
+  - color: purple
     control: guard_nearest_ai
     x: 65
     y: 535
