@@ -4,15 +4,20 @@ HEADLESS = false
 
 require "yaml"
 require "ruby2d"
-require_relative "../lib/game"
+require_relative "../lib/rts_engine/game"
+require_relative "../lib/ruby2d_renderer/renderer"
 
 config_path = ARGV[0]
 raise "config path not specified" if config_path.nil?
 raise "config path not found" unless File.exist?(config_path)
 
 config = YAML.safe_load(File.read(config_path))
-game = Game.from_config(config, screen_size: 800)
-camera = SimpleCamera.new(game.renderer)
+renderer = Renderer.new(
+  screen_size: 800,
+  world_size: config.fetch("world_size"),
+)
+camera = SimpleCamera.new(renderer)
+game = Game.from_config(config, renderer)
 
 set(
   title: "github.com/46bit/rts",

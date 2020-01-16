@@ -1,19 +1,21 @@
 #!/usr/bin/env ruby
 
-HEADLESS = true
-
 require "yaml"
-require_relative "../lib/game"
+require_relative "../lib/rts_engine/game"
+require_relative "../lib/headless_renderer"
 
 config_path = ARGV[0]
 raise "config path not specified" if config_path.nil?
 raise "config path not found" unless File.exist?(config_path)
 
 config = YAML.safe_load(File.read(config_path))
-game = Game.from_config(config, screen_size: 800)
+renderer = HeadlessRenderer.new(world_size: config.fetch("world_size"))
+game = Game.from_config(config, renderer)
 
 loop do
   game.update
   warn game.status_text
   break if game.winner
 end
+
+show
