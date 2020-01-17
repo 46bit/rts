@@ -80,6 +80,10 @@ class Renderer
     RenderTeardrop.new(self, **kargs)
   end
 
+  def icon(**kargs)
+    RenderIcon.new(self, **kargs)
+  end
+
   def apply(type, value)
     case type
     when :static

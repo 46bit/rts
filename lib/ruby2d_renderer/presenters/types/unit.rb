@@ -1,10 +1,18 @@
 require_relative "./entity"
 
 class UnitPresenter < EntityPresenter
-  attr_reader :health_bar
+  attr_reader :icon, :health_bar
 
   def prerender
     super
+    @icon ||= @renderer.icon(
+      x: @entity.x,
+      y: @entity.y,
+      character: @entity.class.name.to_s[0],
+      color: @entity.player.color,
+      # Put the icons of the strongest units on top
+      z: 9999 + @entity.max_health,
+    )
     @health_bar ||= @renderer.line(
       x1: @entity.x - self.class::RADIUS,
       y1: @entity.y + self.class::RADIUS + 3,
@@ -18,6 +26,10 @@ class UnitPresenter < EntityPresenter
 
   def render
     super
+
+    @icon.x = @entity.x
+    @icon.y = @entity.y
+
     if @entity.damaged?
       @health_bar.x1 = @entity.x - self.class::RADIUS
       @health_bar.y1 = @entity.y + self.class::RADIUS + 3
@@ -32,6 +44,7 @@ class UnitPresenter < EntityPresenter
 
   def derender
     super
+    @icon&.remove
     @health_bar&.remove
   end
 end

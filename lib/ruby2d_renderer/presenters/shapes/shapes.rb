@@ -1,6 +1,7 @@
 require_relative "./ruby2d_shape"
 require_relative "./star"
 require_relative "./teardrop"
+require_relative "./icon"
 
 class RenderCircle < Ruby2DShape
   SHAPE = Circle
