@@ -43,11 +43,19 @@ end
 
 class RenderText < Ruby2DShape
   SHAPE = Text
+  DEFAULT_FONT_NAME = Font.default
 
   attr_shape_x :x
   attr_shape_y :y
   # FIXME: size, width and height are readonly
   attr_shape_static :size, :z, :color, :opacity, :width, :height, :text
+
+  def initialize(*args, **kargs)
+    # FIXME: The underlying problem here is actually that Simple2D doesn't deduplicate font file
+    # descriptors at all. That's something that I should go fix.
+    kargs[:font] ||= DEFAULT_FONT_NAME
+    super(*args, **kargs)
+  end
 
   def align_centre
     @align_centre = true

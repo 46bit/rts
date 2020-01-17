@@ -14,3 +14,7 @@ cd rts
 bundle install
 bundle exec ./bin/rts maps/cross.yml
 ```
+
+## Note on file descriptor limits
+
+The game will increase its file descriptor limit to the maximum possible, but you will encounter problems if you have more units than file descriptors. This is due to a font handling limitation in the rendering libraries used.

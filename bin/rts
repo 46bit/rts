@@ -1,17 +1,25 @@
 #!/usr/bin/env ruby
 
-HEADLESS = false
-
 require "yaml"
 require "ruby2d"
 require_relative "../lib/rts_engine/game"
 require_relative "../lib/ruby2d_renderer/renderer"
+
+
 
 config_path = ARGV[0]
 raise "config path not specified" if config_path.nil?
 raise "config path not found" unless File.exist?(config_path)
 
 config = YAML.safe_load(File.read(config_path))
+
+# Increase the file description limit. Each piece of text in the game uses one file descriptor
+# because that's what is hardcoded in Simple2D. Each unit in the game uses at least one piece of
+# text (for the strategic icon), so each unit uses at least one file descriptor.
+# FIXME: Fix this in the underlying libraries.
+needed_number_of_file_descriptors = 1500 + config.fetch("unit_cap") * config.fetch("players").length
+Process.setrlimit(:NOFILE, needed_number_of_file_descriptors)
+
 renderer = Renderer.new(
   screen_size: 800,
   world_size: config.fetch("world_size"),
