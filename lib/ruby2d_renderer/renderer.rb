@@ -1,5 +1,5 @@
 require_relative "./camera"
-require_relative "./presenters/shapes/shapes"
+require_relative "./shapes/shapes"
 require_relative "./presenters/game"
 require_relative "./presenters/player"
 require_relative "./presenters/generator"
