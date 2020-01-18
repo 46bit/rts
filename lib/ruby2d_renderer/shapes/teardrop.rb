@@ -47,11 +47,6 @@ class RenderTeardrop
     @y = y
   end
 
-  def recompute
-    @circle.recompute
-    @triangle.recompute
-  end
-
   def remove
     @circle.remove
     @triangle.remove

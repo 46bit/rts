@@ -1,5 +1,6 @@
 class Ruby2DShape
-  def initialize(renderer, *args, **kargs)
+  def initialize(renderer, *args, parent: nil, **kargs)
+    @parent = parent
     @shape_values = {}
     shape_attributes = self.class.shape_attributes
     kargs.each do |name, value|
@@ -12,11 +13,13 @@ class Ruby2DShape
       end
     end
     @shape = self.class::SHAPE.new(*args, **kargs)
+    @shape.instance_variable_set(:@owner, self)
     @renderer = renderer
-    @renderer.attach(self)
   end
 
-  def recompute
+  def recompute(invoke_parents: false)
+    return @parent.recompute if invoke_parents && @parent
+
     @shape_values.each do |attr_type, attrs|
       next if attr_type == :static
 
@@ -31,12 +34,10 @@ class Ruby2DShape
 
   def remove
     @shape.remove
-    @renderer.detach(self)
   end
 
   def add
     @shape.add
-    @renderer.attach(self)
     recompute
   end
 

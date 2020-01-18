@@ -67,7 +67,7 @@ class RenderText < Ruby2DShape
     @shape.y -= @shape.height / 2.0
   end
 
-  def recompute
+  def recompute(*)
     super
     align_centre if @align_centre
     align_middle if @align_middle

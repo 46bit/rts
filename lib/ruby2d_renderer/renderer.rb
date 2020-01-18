@@ -18,7 +18,6 @@ class Renderer
     @world_size = world_size
     @centre_x = 0
     @centre_y = 0
-    @shapes = {}
     @zoom_multiplier = 1.0
     recalculate_scale_multiplier
   end
@@ -114,19 +113,21 @@ class Renderer
     end
   end
 
-  def attach(shape)
-    @shapes[shape.object_id] = shape
-  end
-
-  def detach(shape)
-    @shapes.delete(shape.object_id)
-  end
-
   def recalculate_scale_multiplier
     @scale_multiplier = @screen_size.to_f / @world_size * @zoom_multiplier
   end
 
   def recompute_shapes
-    @shapes.values.each(&:recompute)
+    Window.object_owners.each do |object_owner|
+      next unless object_owner.respond_to?(:recompute)
+
+      object_owner.recompute(invoke_parents: true)
+    end
+  end
+end
+
+class Window
+  def self.object_owners
+    @@window.instance_variable_get(:@objects).map { |object| object.instance_variable_get(:@owner) }.compact
   end
 end

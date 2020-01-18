@@ -51,11 +51,6 @@ class RenderStar
     @diagonal_square.y4 = y
   end
 
-  def recompute
-    @square.recompute
-    @diagonal_square.recompute
-  end
-
   def remove
     @square.remove
     @diagonal_square.remove

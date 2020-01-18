@@ -10,6 +10,7 @@ class RenderIcon
     @x = x
     @y = y
     @square ||= @renderer.square(
+      parent: self,
       x: x - SIZE / 2,
       y: y - SIZE / 2,
       size: SIZE,
@@ -17,17 +18,15 @@ class RenderIcon
       opacity: opacity,
       z: z,
     )
-    @renderer.detach(@square)
     @label ||= @renderer.text(
       character,
+      parent: self,
       x: x - SIZE / 2,
       y: y - SIZE / 2,
       size: SIZE,
       color: "white",
       z: z + 1,
     )
-    @renderer.detach(@label)
-    @renderer.attach(self)
     #@label.align_centre
     #@label.align_middle
 
@@ -65,12 +64,10 @@ class RenderIcon
   def remove
     @square.remove
     @label.remove
-    @renderer.detach(self)
   end
 
   def add
     @square.add
     @label.add
-    @renderer.attach(self)
   end
 end
