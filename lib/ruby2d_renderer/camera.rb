@@ -5,6 +5,14 @@ class SimpleCamera
     @renderer = renderer
   end
 
+  def reset
+    @renderer.centre_x = 0
+    @renderer.centre_y = 0
+    @renderer.zoom_multiplier = 1.0
+    @renderer.recalculate_scale_multiplier
+    @renderer.recompute_shapes
+  end
+
   def move(dx, dy)
     @renderer.centre_x += dx
     @renderer.centre_y += dy

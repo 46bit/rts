@@ -5,8 +5,6 @@ require "ruby2d"
 require_relative "../lib/rts_engine/game"
 require_relative "../lib/ruby2d_renderer/renderer"
 
-
-
 config_path = ARGV[0]
 raise "config path not specified" if config_path.nil?
 raise "config path not found" unless File.exist?(config_path)
@@ -53,6 +51,8 @@ on :key_held do |event|
     camera.move(0, -5)
   when "down"
     camera.move(0, 5)
+  when "r"
+    camera.reset
   end
 end
 
