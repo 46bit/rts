@@ -69,7 +69,8 @@ class Player
       @projectiles.each(&:update)
       remove_dead_units
 
-      @control.update(power_sources, self, other_players)
+      # @control.update(power_sources, self, other_players)
+      @control.update([], self, other_players)
       remove_dead_units
     end
   end
@@ -107,10 +108,10 @@ protected
     @constructions.reject!(&:dead?)
   end
 
-  def update_energy_generation(power_sources)
-    owned_power_sources = power_sources.select { |g| g.owner?(self) }
-    owned_generation_capacity = owned_power_sources.map(&:capacity).sum
-    @latest_build_capacity = @base_generation_capacity.to_f + owned_generation_capacity
+  def update_energy_generation(_power_sources)
+    #owned_power_sources = power_sources.select { |g| g.owner?(self) }
+    #owned_generation_capacity = owned_power_sources.map(&:capacity).sum
+    @latest_build_capacity = @base_generation_capacity.to_f #+ owned_generation_capacity
     @energy += @latest_build_capacity
   end
 

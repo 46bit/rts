@@ -3,7 +3,7 @@ require_relative "./types/entity"
 class PowerSourcePresenter < EntityPresenter
   RADIUS = 7.0
 
-  attr_reader :triangle, :label
+  attr_reader :triangle
 
   def prerender
     super
@@ -20,26 +20,15 @@ class PowerSourcePresenter < EntityPresenter
       color: "white",
       z: 1,
     )
-    @label ||= @renderer.text(
-      @capacity.to_s,
-      x: @entity.x,
-      y: @entity.y + RADIUS + 2.0,
-      size: 10,
-      color: "white",
-      z: 1,
-    )
-    # FIXME: Move this into a property when initialising @renderer.text(…)
-    @label.align_centre
   end
 
   def render
     super
-    @triangle.color = @entity.occupied? ? @entity.player.color : "white"
+    # @triangle.color = @entity.occupied? ? @entity.player.color : "white"
   end
 
   def derender
     super
     @triangle&.remove
-    @label&.remove
   end
 end

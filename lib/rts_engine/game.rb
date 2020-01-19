@@ -43,7 +43,7 @@ class Game
 
         damage_enemy_things_that_projectiles_collide_with(unit_quadtree)
         remove_killed_projectiles
-        capture_power_sources_and_damage_capturing_vehicles(unit_quadtree)
+        # capture_power_sources_and_damage_capturing_vehicles(unit_quadtree)
         remove_killed_vehicles
         damage_colliding_units(unit_quadtree)
         remove_killed_vehicles
@@ -58,9 +58,9 @@ class Game
         remove_killed_projectiles
       end
 
-      @power_sources.each do |power_source|
-        power_source.player = nil if power_source.player && power_source.player.defeated?
-      end
+      # @power_sources.each do |power_source|
+      #   power_source.player = nil if power_source.player && power_source.player.defeated?
+      # end
 
       check_for_winner unless @sandbox || @winner
     end
