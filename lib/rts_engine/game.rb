@@ -144,11 +144,13 @@ protected
       next if player.projectiles.empty?
 
       unit_quadtree.collisions(player.projectiles).each do |projectile, enemy_units|
+        kill_projectile = false
         damage_per_enemy = projectile.damage.to_f / enemy_units.length
         enemy_units.each do |enemy_unit|
+          kill_projectile ||= enemy_unit.health > 0
           enemy_unit.damage(damage_per_enemy)
         end
-        projectile.kill
+        projectile.kill if kill_projectile
       end
     end
   end
