@@ -5,7 +5,7 @@ require_relative "./entities/tank"
 require_relative "./entities/factory"
 require_relative "./entities/turret"
 
-def ai_from_string(name, _world_size, _generators)
+def ai_from_string(name, _world_size, _power_sources)
   case name
   when "guard_nearest_ai"
     GuardNearestAI.new

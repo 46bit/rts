@@ -1,6 +1,6 @@
 require_relative "./types/entity"
 
-class GeneratorPresenter < EntityPresenter
+class PowerSourcePresenter < EntityPresenter
   RADIUS = 7.0
 
   attr_reader :triangle, :label

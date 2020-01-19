@@ -1,14 +1,14 @@
 require_relative "./types/location"
 
-class Generator < Location
-  def self.from_config(generator_config, renderer)
-    Generator.new(
+class PowerSource < Location
+  def self.from_config(power_source_config, renderer)
+    PowerSource.new(
       renderer,
       Vector[
-        generator_config["x"],
-        generator_config["y"]
+        power_source_config["x"],
+        power_source_config["y"]
       ],
-      capacity: generator_config["capacity"],
+      capacity: power_source_config["capacity"],
     )
   end
 

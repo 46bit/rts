@@ -18,7 +18,7 @@ players:
     control: attack_nearest_ai
     x: 535
     y: 535
-generators:
+power_sources:
   - x: 75
     y: 300
     capacity: 1.5

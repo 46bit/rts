@@ -3,9 +3,9 @@ require_relative "./ai"
 require_relative "./entities/commander"
 
 class Player
-  def self.from_config(player_config, unit_cap, renderer, generators)
-    # FIXME: generators shouldn't be passed here. rethink the AI structure.
-    ai = ai_from_string(player_config["control"], renderer.world_size, generators)
+  def self.from_config(player_config, unit_cap, renderer, power_sources)
+    # FIXME: power sources shouldn't be passed here. rethink the AI structure.
+    ai = ai_from_string(player_config["control"], renderer.world_size, power_sources)
     raise "no AI found for player configured to use '#{player_config['control']}'" unless ai
 
     Player.new(
@@ -48,7 +48,7 @@ class Player
     @latest_render_duration = nil
   end
 
-  def update(generators, other_players)
+  def update(power_sources, other_players)
     @latest_update_duration = time do
       remove_dead_units
 
@@ -60,7 +60,7 @@ class Player
 
       @enemy_units = other_players.map(&:units).flatten
 
-      update_energy_generation(generators)
+      update_energy_generation(power_sources)
       update_energy_consumption
       @factories.each(&:update)
       @vehicles.each(&:update)
@@ -69,7 +69,7 @@ class Player
       @projectiles.each(&:update)
       remove_dead_units
 
-      @control.update(generators, self, other_players)
+      @control.update(power_sources, self, other_players)
       remove_dead_units
     end
   end
@@ -107,9 +107,9 @@ protected
     @constructions.reject!(&:dead?)
   end
 
-  def update_energy_generation(generators)
-    owned_generators = generators.select { |g| g.owner?(self) }
-    owned_generation_capacity = owned_generators.map(&:capacity).sum
+  def update_energy_generation(power_sources)
+    owned_power_sources = power_sources.select { |g| g.owner?(self) }
+    owned_generation_capacity = owned_power_sources.map(&:capacity).sum
     @latest_build_capacity = @base_generation_capacity.to_f + owned_generation_capacity
     @energy += @latest_build_capacity
   end

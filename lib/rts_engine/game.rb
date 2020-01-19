@@ -1,29 +1,29 @@
-require_relative "./entities/generator"
+require_relative "./entities/power_source"
 require_relative "./player"
 require_relative "./quadtree"
 
 class Game
   def self.from_config(config, renderer)
-    generators = config.fetch("generators").map do |generator_config|
-      Generator::from_config(generator_config, renderer)
+    power_sources = config.fetch("power_sources").map do |power_source_config|
+      PowerSource::from_config(power_source_config, renderer)
     end
     players = config.fetch("players").map do |player_config|
-      Player::from_config(player_config, config.fetch("unit_cap"), renderer, generators)
+      Player::from_config(player_config, config.fetch("unit_cap"), renderer, power_sources)
     end
     Game.new(
       renderer,
-      generators,
+      power_sources,
       players,
       sandbox: config.fetch("sandbox", false),
     )
   end
 
-  attr_reader :presenter, :renderer, :generators, :players, :sandbox, :update_counter, :winner, :win_time
+  attr_reader :presenter, :renderer, :power_sources, :players, :sandbox, :update_counter, :winner, :win_time
 
-  def initialize(renderer, generators, players, sandbox: false)
+  def initialize(renderer, power_sources, players, sandbox: false)
     @presenter = renderer.present(self)
     @renderer = renderer
-    @generators = generators
+    @power_sources = power_sources
     @players = players
     @sandbox = sandbox
     @update_counter = 0
@@ -43,7 +43,7 @@ class Game
 
         damage_enemy_things_that_projectiles_collide_with(unit_quadtree)
         remove_killed_projectiles
-        capture_generators_and_damage_capturing_vehicles(unit_quadtree)
+        capture_power_sources_and_damage_capturing_vehicles(unit_quadtree)
         remove_killed_vehicles
         damage_colliding_units(unit_quadtree)
         remove_killed_vehicles
@@ -52,14 +52,14 @@ class Game
 
       @latest_players_update_duration = time do
         @players.each do |player|
-          player.update(@generators, @players - [player])
+          player.update(@power_sources, @players - [player])
         end
         remove_killed_vehicles
         remove_killed_projectiles
       end
 
-      @generators.each do |generator|
-        generator.player = nil if generator.player && generator.player.defeated?
+      @power_sources.each do |power_source|
+        power_source.player = nil if power_source.player && power_source.player.defeated?
       end
 
       check_for_winner unless @sandbox || @winner
@@ -70,7 +70,7 @@ class Game
     @latest_render_duration = time do
       @presenter.prerender
       @presenter.render
-      @generators.each(&:render)
+      @power_sources.each(&:render)
       @players.each(&:render)
     end
   end
@@ -169,12 +169,12 @@ protected
     end
   end
 
-  def capture_generators_and_damage_capturing_vehicles(unit_quadtree)
-    unit_quadtree.collisions(@generators).each do |generator, colliding_units|
+  def capture_power_sources_and_damage_capturing_vehicles(unit_quadtree)
+    unit_quadtree.collisions(@power_sources).each do |power_source, colliding_units|
       # What to do here is awkward. The least biased thing to do is randomly pick an enemy colliding unit
       # and say that won…
       colliding_units.shuffle!
-      generator.capture(colliding_units[0].player)
+      power_source.capture(colliding_units[0].player)
       colliding_units[0].damage(10)
     end
   end
