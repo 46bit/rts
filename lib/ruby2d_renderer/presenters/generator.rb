@@ -24,7 +24,7 @@ class GeneratorPresenter < UnitPresenter
       "+#{@entity.capacity}",
       x: @entity.x,
       y: @entity.y + RADIUS + 2.0,
-      size: 10,
+      size: 13,
       color: "white",
       z: 1,
     )

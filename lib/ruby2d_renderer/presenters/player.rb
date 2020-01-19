@@ -8,7 +8,7 @@ class PlayerPresenter < EntityPresenter
 
     @stats_text ||= @renderer.text(
       "",
-      size: 8,
+      size: 14,
       color: @entity.color,
       z: 2,
     )
