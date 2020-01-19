@@ -21,7 +21,7 @@ class Player
   end
 
   attr_reader :presenter, :color, :control, :unit_cap, :base_generation_capacity, :renderer, :latest_build_capacity, :latest_update_duration, :latest_render_duration
-  attr_accessor :energy, :factories, :vehicles, :turrets, :projectiles, :constructions, :commander, :enemy_units
+  attr_accessor :energy, :generators, :factories, :vehicles, :turrets, :projectiles, :constructions, :commander, :enemy_units
 
   def initialize(color, control, renderer, commander_position, unit_cap: Float::INFINITY, base_generation_capacity: 5)
     @presenter = renderer.present(self)
@@ -49,7 +49,7 @@ class Player
     @latest_render_duration = nil
   end
 
-  def update(power_sources, other_players)
+  def update(power_sources, other_players, direct_fire_quadtree)
     @latest_update_duration = time do
       remove_dead_units
 
@@ -63,6 +63,7 @@ class Player
 
       update_energy_generation(power_sources)
       update_energy_consumption
+      @generators.each(&:update)
       @factories.each(&:update)
       @vehicles.each(&:update)
       update_constructions
@@ -70,7 +71,7 @@ class Player
       @projectiles.each(&:update)
       remove_dead_units
 
-      @control.update(power_sources, self, other_players)
+      @control.update(power_sources, self, other_players, direct_fire_quadtree)
       remove_dead_units
     end
   end
@@ -119,6 +120,7 @@ protected
   def update_energy_consumption
     powered_units = @factories.select(&:producing?)
     powered_units += @vehicles.select { |u| u.respond_to?(:producing?) && u.producing? }
+    powered_units += @generators.select(&:upgrading?)
     power_drains = Hash[powered_units.map do |powered_unit|
       [powered_unit.object_id, powered_unit.energy_consumption]
     end]

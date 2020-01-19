@@ -5,8 +5,8 @@ module Collidable
     @collision_radius = collision_radius
   end
 
-  def collided?(object)
-    combined_collision_radius = @collision_radius + object.collision_radius
+  def collided?(object, within: 0)
+    combined_collision_radius = @collision_radius + object.collision_radius + within
     distance_between = (object.position - @position).magnitude
     distance_between <= combined_collision_radius
   end

@@ -39,6 +39,7 @@ class GeneratorPresenter < UnitPresenter
     if @entity.built?
       @label.add
       @label.color = @entity.player.color
+      @label.text = "+#{@entity.capacity}"
     else
       @label.remove
     end

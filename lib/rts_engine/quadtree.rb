@@ -14,7 +14,12 @@ class Quadtree
     self.quadrant(bounds, units)
   end
 
-  def self.quadrant(bounds, units)
+  def self.from_turret_ranges(turrets)
+    bounds = bounds_from_unit_ranges(turrets)
+    self.quadrant(bounds, turrets, contains_check: lambda { |a, b| bounds_contains_turret_ranges(a, b) } )
+  end
+
+  def self.quadrant(bounds, units, contains_check: lambda { |a, b| bounds_contains_unit(a, b) })
     if units.length <= 1 || (units.map(&:player).uniq.length == 1)
       return Quadtree.new(bounds, units, [], units[0]&.player)
     end
@@ -25,7 +30,7 @@ class Quadtree
     units.each do |unit|
       assigned = false
       quadrants_bounds.each_with_index do |quadrant_bounds, i|
-        if bounds_contains_unit(quadrant_bounds, unit)
+        if contains_check.call(quadrant_bounds, unit)
           quadrants_units[i] << unit
           assigned = true
           break
@@ -37,7 +42,7 @@ class Quadtree
     quadtrees = []
     if parent_units.length < units.length
       quadtrees = (0...4).map do |i|
-        Quadtree.quadrant(quadrants_bounds[i], quadrants_units[i])
+        Quadtree.quadrant(quadrants_bounds[i], quadrants_units[i], contains_check: contains_check)
       end
     end
 
@@ -54,7 +59,7 @@ class Quadtree
       collisions[unit1] = []
       units.each do |unit2|
         next if unit1 == unit2
-        next if !unit1.player.nil? && unit1.player == unit2.player
+        next if !unit1.respond_to?(:player) || (unit1.player && unit1.player == unit2.player)
 
         if unit1.collided?(unit2)
           collisions[unit1] << unit2
@@ -75,21 +80,21 @@ class Quadtree
     collisions
   end
 
-  def collision_for(unit1)
+  def collision_for(unit1, player: unit1.player, within: 0)
     unit_collisions = []
     units.each do |unit2|
       next if unit1 == unit2
 
-      if unit1.collided?(unit2)
-        next if !unit1.player.nil? && unit1.player == unit2.player
+      if unit1.collided?(unit2, within: within)
+        next if !player.nil? && player == unit2.player
 
         unit_collisions << unit2
       end
     end
     subtrees.each do |subtree|
-      next unless bounds_contains_unit(subtree.bounds, unit1) && (unit1.player.nil? || subtree.player != unit1.player)
+      next unless bounds_contains_unit(subtree.bounds, unit1) && (player.nil? || subtree.player != player)
 
-      unit_collisions += subtree.collision_for(unit1)
+      unit_collisions += subtree.collision_for(unit1, player: player, within: within)
     end
     unit_collisions
   end
@@ -101,6 +106,15 @@ def bounds_from_units(units)
     right: units.map { |u| u.position[0] + u.collision_radius }.max,
     top: units.map { |u| u.position[1] - u.collision_radius }.min,
     bottom: units.map { |u| u.position[1] + u.collision_radius }.max,
+  }
+end
+
+def bounds_from_unit_ranges(units)
+  {
+    left: units.map { |u| u.position[0] - TurretProjectile::RANGE }.min,
+    right: units.map { |u| u.position[0] + TurretProjectile::RANGE }.max,
+    top: units.map { |u| u.position[1] - TurretProjectile::RANGE }.min,
+    bottom: units.map { |u| u.position[1] + TurretProjectile::RANGE }.max,
   }
 end
 
@@ -145,8 +159,16 @@ def bounds_contains_unit(bounds, unit)
   unit_left >= bounds[:left] && unit_right <= bounds[:right] && unit_top >= bounds[:top] && unit_bottom <= bounds[:bottom]
 end
 
+def bounds_contains_turret_ranges(bounds, turret)
+  unit_left = unit.position[0] - TurretProjectile::RANGE
+  unit_right = unit.position[0] + TurretProjectile::RANGE
+  unit_top = unit.position[1] - TurretProjectile::RANGE
+  unit_bottom = unit.position[1] + TurretProjectile::RANGE
+  unit_left >= bounds[:left] && unit_right <= bounds[:right] && unit_top >= bounds[:top] && unit_bottom <= bounds[:bottom]
+end
+
 def draw_quadtree(quadtree, renderer)
-  #puts "bounds='#{quadtree.bounds.inspect}' unit_count=#{quadtree.units.length}"
+  puts "bounds='#{quadtree.bounds.inspect}' unit_count=#{quadtree.units.length}"
   top_line = renderer.line(
     x1: quadtree.bounds[:left],
     y1: quadtree.bounds[:top],

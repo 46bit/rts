@@ -11,7 +11,7 @@ players:
     x: 535
     y: 65
   - color: purple
-    control: guard_nearest_ai
+    control: attack_nearest_ai
     x: 65
     y: 535
   - color: blue
@@ -36,6 +36,24 @@ power_sources:
     capacity: 1.5
   - x: 155
     y: 535
+    capacity: 1.5
+  - x: 155
+    y: 500
+    capacity: 1.5
+  - x: 155
+    y: 470
+    capacity: 1.5
+  - x: 155
+    y: 440
+    capacity: 1.5
+  - x: 155
+    y: 410
+    capacity: 1.5
+  - x: 155
+    y: 380
+    capacity: 1.5
+  - x: 155
+    y: 350
     capacity: 1.5
   - x: 445
     y: 535

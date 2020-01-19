@@ -42,7 +42,7 @@ end
 
 class TurretProjectile < Projectile
   RANGE = 180
-  DAMAGE = 10
+  DAMAGE = 7
 
   def initialize(renderer, position, direction, player)
     super(renderer, position, 3.5, direction, RANGE, DAMAGE, player, collision_radius: 4)

@@ -23,7 +23,9 @@ class PowerSource < Location
   end
 
   def structure=(structure)
-    if !structure || structure.position == @position
+    if @structure&.alive?
+      raise "trying to build on power source at '#{@position}' when a structure '#{@structure}' is already on it"
+    elsif !structure || structure.position == @position
       @structure = structure
     else
       raise "structure position '#{structure.position}' did not match power source position '#{@position}'"

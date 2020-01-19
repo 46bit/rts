@@ -37,9 +37,18 @@ class Game
     @latest_update_duration = time do
       @update_counter += 1
 
+      if @direct_fire_quadtree_lines
+        @direct_fire_quadtree_lines.each(&:remove)
+      end
+
+      direct_fire_quadtree = nil
+
       @latest_game_update_duration = time do
         units = @players.map(&:units).flatten
         unit_quadtree = Quadtree.from_units(units)
+        turrets = @players.map(&:turrets).flatten
+        direct_fire_quadtree = Quadtree.from_turret_ranges(turrets)
+        @direct_fire_quadtree_lines = draw_quadtree(direct_fire_quadtree, @renderer) unless turrets.empty?
 
         damage_enemy_things_that_projectiles_collide_with(unit_quadtree)
         remove_killed_projectiles
@@ -53,7 +62,7 @@ class Game
 
       @latest_players_update_duration = time do
         @players.each do |player|
-          player.update(@power_sources, @players - [player])
+          player.update(@power_sources, @players - [player], direct_fire_quadtree)
         end
         remove_killed_vehicles
         remove_killed_projectiles
