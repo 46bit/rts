@@ -33,7 +33,7 @@ class FactoryPresenter < UnitPresenter
 
   def render
     super
-    @outline.opacity = @entity.built? ? 1.0 : (0.2 + @entity.healthyness * 0.8)
+    @outline.opacity = @entity.built? ? 1.0 : (0.2 + @entity.healthyness * 0.7)
     @progress_square.opacity = @entity.unit.nil? ? 0.0 : (0.1 + @entity.production_progress * 0.9)
   end
 

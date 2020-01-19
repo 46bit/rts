@@ -2,6 +2,7 @@ require "matrix"
 require_relative "./entities/capabilities/orderable"
 require_relative "./entities/bot"
 require_relative "./entities/tank"
+require_relative "./entities/generator"
 require_relative "./entities/factory"
 require_relative "./entities/turret"
 
@@ -21,7 +22,7 @@ end
 # AI that focuses on seizing the generator closest to each unit. When it has seized all generators
 # its units guard their nearest generators.
 class GuardNearestAI
-  def update(generators, player, _other_players)
+  def update(power_sources, player, _other_players)
     if (player.factories.empty? || player.energy > 500) && !player.vehicles.empty?
       new_factory_location = player.constructions.select { |c| c.is_a?(Factory) }[0]&.position
       new_factory_location ||= player.vehicles.map(&:position).inject(:+) / player.vehicles.length
@@ -35,14 +36,20 @@ class GuardNearestAI
 
     player.factories.each { |f| f.produce(Bot) }
 
-    targets = generators.reject { |g| g.owner?(player) }
-    targets = generators if targets.empty?
+    targets = power_sources.reject { |g| g.owner?(player) && g.structure.built? }
+    targets = power_sources if targets.empty?
     player.vehicles.each do |vehicle|
       next if vehicle.dead
 
       target = targets.min_by { |t| (t.position - vehicle.position).magnitude }
       vehicle.order = if target.nil?
                         nil
+                      elsif target.class == PowerSource
+                        if target.occupied? && !target.owner?(player)
+                          AttackOrder.new(target)
+                        else
+                          RemoteBuildOrder.new(target, Generator)
+                        end
                       else
                         ManoeuvreOrder.new(target.position)
                       end
@@ -53,7 +60,7 @@ end
 # AI that focuses on seizing the generator closest to each unit. When it has seized all generators
 # its units swarm enemy units and factories.
 class AttackNearestAI
-  def update(generators, player, other_players)
+  def update(power_sources, player, other_players)
     if (player.factories.empty? || player.energy > 500) && !player.vehicles.empty?
       player.factories.each { |f| f.produce(Bot) }
       new_factory_location = player.constructions.select { |c| c.is_a?(Factory) }[0]&.position
@@ -66,11 +73,11 @@ class AttackNearestAI
       return
     end
 
-    targets = generators.reject { |g| g.owner?(player) }
-    targets += other_players.map(&:turrets).flatten if targets.length >= generators.length / 2
+    targets = power_sources.reject { |g| g.owner?(player) && g.structure.built? }
+    targets += other_players.map(&:turrets).flatten if targets.length >= power_sources.length / 2
     targets += other_players.select { |p| p.vehicles.length <= player.vehicles.length / 4 }.map(&:factories).flatten
     targets = other_players.map(&:factories).flatten + other_players.map(&:vehicles).flatten + other_players.map(&:turrets).flatten if targets.empty?
-    targets = generators + player.factories if targets.empty?
+    targets = power_sources + player.factories if targets.empty?
 
     living_other_players = other_players.select { |p| p.unit_count.positive? }
     if living_other_players.length == 1 && living_other_players[0].turrets.length > 1
@@ -85,6 +92,12 @@ class AttackNearestAI
       target = targets.min_by { |t| (t.position - vehicle.position).magnitude }
       vehicle.order = if target.nil?
                         nil
+                      elsif target.class == PowerSource
+                        if target.occupied? && !target.owner?(player)
+                          AttackOrder.new(target)
+                        else
+                          RemoteBuildOrder.new(target, Generator)
+                        end
                       else
                         ManoeuvreOrder.new(target.position)
                       end
@@ -95,7 +108,7 @@ end
 # AI that focuses on seizing the generator closest to each unit. When it has seized all generators
 # its units swarm enemy units and factories.
 class BuildTurretsAI
-  def update(_generators, player, _other_players)
+  def update(_power_sources, player, _other_players)
     if player.factories.empty? && !player.vehicles.empty?
       new_factory_location = player.constructions.select { |c| c.is_a?(Factory) }[0]&.position
       new_factory_location ||= player.vehicles.map(&:position).inject(:+) / player.vehicles.length

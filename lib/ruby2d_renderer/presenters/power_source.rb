@@ -24,7 +24,7 @@ class PowerSourcePresenter < EntityPresenter
 
   def render
     super
-    # @triangle.color = @entity.occupied? ? @entity.player.color : "white"
+    @triangle.color = @entity.occupied? ? @entity.structure.player.color : "white"
   end
 
   def derender

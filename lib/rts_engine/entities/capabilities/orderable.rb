@@ -1,14 +1,12 @@
 ManoeuvreOrder = Struct.new(:destination)
+class StopOrder; end
 BuildOrder = Struct.new(:unit_class)
-RemoteBuildOrder = Struct.new(:build_position, :unit_class) do
-  def unit=(unit)
-    instance_variable_set("@unit", unit)
-  end
-
-  def unit
-    instance_variable_get("@unit")
+RemoteBuildOrder = Struct.new(:build_at, :unit_class) do
+  def build_position
+    build_at.class == Vector ? build_at : build_at.position
   end
 end
+ConstructOrder = Struct.new(:unit)
 AttackOrder = Struct.new(:target_unit)
 PatrolLocationOrder = Struct.new(:position, :range)
 GuardOrder = Struct.new(:unit, :range, :attack_range)

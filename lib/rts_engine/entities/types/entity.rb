@@ -1,9 +1,7 @@
 class Entity
-  attr_reader :renderer, :presenter, :position
+  attr_reader :position
 
-  def initialize(renderer, position)
-    @renderer = renderer
-    @presenter = renderer.present(self)
+  def initialize(position)
     @position = position
   end
 
@@ -21,10 +19,5 @@ class Entity
 
   def y=(y)
     @position[1] = y
-  end
-
-  def render
-    @presenter&.prerender
-    @presenter&.render
   end
 end

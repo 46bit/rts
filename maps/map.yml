@@ -1,0 +1,46 @@
+---
+unit_cap: 500
+world_size: 1500
+players:
+  - color: green
+    control: attack_nearest_ai
+    x: 750
+    y: 200
+  - color: red
+    control: attack_nearest_ai
+    x: 200
+    y: 750
+  - color: purple
+    control: attack_nearest_ai
+    x: 750
+    y: 1300
+  - color: blue
+    control: attack_nearest_ai
+    x: 1300
+    y: 750
+power_sources:
+  - x: 700
+    y: 150
+    capacity: 15
+  - x: 800
+    y: 150
+    capacity: 15
+  - x: 800
+    y: 250
+    capacity: 15
+  - x: 700
+    y: 250
+    capacity: 15
+
+  - x: 700
+    y: 1250
+    capacity: 15
+  - x: 800
+    y: 1250
+    capacity: 15
+  - x: 800
+    y: 1350
+    capacity: 15
+  - x: 700
+    y: 1350
+    capacity: 15

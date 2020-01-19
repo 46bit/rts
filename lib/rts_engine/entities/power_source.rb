@@ -1,4 +1,5 @@
 require_relative "./types/location"
+require_relative "./capabilities/presentable"
 
 class PowerSource < Location
   def self.from_config(power_source_config, renderer)
@@ -6,16 +7,38 @@ class PowerSource < Location
       renderer,
       Vector[
         power_source_config["x"],
-        power_source_config["y"]
+        power_source_config["y"],
       ],
-      capacity: power_source_config["capacity"],
     )
   end
 
-  attr_reader :capacity
+  include Presentable
 
-  def initialize(renderer, position, capacity:)
-    super(renderer, position, collision_radius: 7)
-    @capacity = capacity
+  attr_reader :structure
+
+  def initialize(renderer, position, structure: nil)
+    super(position, collision_radius: 7)
+    @structure = structure
+    initialize_presentable(renderer)
+  end
+
+  def structure=(structure)
+    if !structure || structure.position == @position
+      @structure = structure
+    else
+      raise "structure position '#{structure.position}' did not match power source position '#{@position}'"
+    end
+  end
+
+  def update
+    @structure = nil if @structure&.dead?
+  end
+
+  def owner?(player)
+    @structure && @structure.player == player
+  end
+
+  def occupied?
+    !!@structure&.player
   end
 end

@@ -35,6 +35,7 @@ class Player
     @factories = []
     @vehicles = []
     @turrets = []
+    @generators = []
     @projectiles = []
     @constructions = []
     @commander = Commander.new(
@@ -69,8 +70,7 @@ class Player
       @projectiles.each(&:update)
       remove_dead_units
 
-      # @control.update(power_sources, self, other_players)
-      @control.update([], self, other_players)
+      @control.update(power_sources, self, other_players)
       remove_dead_units
     end
   end
@@ -79,11 +79,12 @@ class Player
     @latest_render_duration = time do
       @presenter.prerender
       @presenter.render
-      @factories.each(&:render)
-      @vehicles.each(&:render)
-      @turrets.each(&:render)
-      @constructions.each(&:render)
-      @projectiles.each(&:render)
+      @generators.each(&:present)
+      @factories.each(&:present)
+      @vehicles.each(&:present)
+      @turrets.each(&:present)
+      @constructions.each(&:present)
+      @projectiles.each(&:present)
     end
   end
 
@@ -92,7 +93,7 @@ class Player
   end
 
   def units
-    @factories + @vehicles + @turrets + @constructions
+    @generators + @factories + @vehicles + @turrets + @constructions
   end
 
   def defeated?
@@ -102,6 +103,7 @@ class Player
 protected
 
   def remove_dead_units
+    @generators.reject!(&:dead?)
     @vehicles.reject!(&:dead?)
     @projectiles.reject!(&:dead?)
     @turrets.reject!(&:dead?)
@@ -109,9 +111,8 @@ protected
   end
 
   def update_energy_generation(_power_sources)
-    #owned_power_sources = power_sources.select { |g| g.owner?(self) }
-    #owned_generation_capacity = owned_power_sources.map(&:capacity).sum
-    @latest_build_capacity = @base_generation_capacity.to_f #+ owned_generation_capacity
+    owned_generation_capacity = @generators.map(&:capacity).sum
+    @latest_build_capacity = @base_generation_capacity.to_f + owned_generation_capacity
     @energy += @latest_build_capacity
   end
 
@@ -141,6 +142,8 @@ protected
 
       @constructions.delete(construction)
       case construction
+      when Generator
+        @generators << construction
       when Factory
         @factories << construction
       when Turret

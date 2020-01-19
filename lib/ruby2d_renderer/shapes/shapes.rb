@@ -55,16 +55,18 @@ class RenderText < Ruby2DShape
     # descriptors at all. That's something that I should go fix.
     kargs[:font] ||= DEFAULT_FONT_NAME
     super(*args, **kargs)
+    @align_centre = false
+    @align_middle = false
   end
 
   def align_centre
     @align_centre = true
-    @shape.x -= @shape.width / 2.0
+    @shape.x = @renderer.apply(:x, @shape_values[:x][:x]) - @shape.width / 2.0
   end
 
   def align_middle
     @align_middle = true
-    @shape.y -= @shape.height / 2.0
+    @shape.y = @renderer.apply(:y, @shape_values[:y][:y]) - @shape.height / 2.0
   end
 
   def recompute(*)

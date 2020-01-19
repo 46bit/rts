@@ -19,7 +19,7 @@ class EngineerPresenter < UnitPresenter
 
   def render
     super
-    if @entity.unit.nil?
+    if @entity.unit.nil? || !@entity.within_production_range?(@entity.unit.position)
       @build_beam.remove
     else
       @build_beam.add

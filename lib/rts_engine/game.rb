@@ -43,11 +43,12 @@ class Game
 
         damage_enemy_things_that_projectiles_collide_with(unit_quadtree)
         remove_killed_projectiles
-        # capture_power_sources_and_damage_capturing_vehicles(unit_quadtree)
         remove_killed_vehicles
         damage_colliding_units(unit_quadtree)
         remove_killed_vehicles
         remove_killed_factories
+
+        @power_sources.each(&:update)
       end
 
       @latest_players_update_duration = time do
@@ -58,10 +59,6 @@ class Game
         remove_killed_projectiles
       end
 
-      # @power_sources.each do |power_source|
-      #   power_source.player = nil if power_source.player && power_source.player.defeated?
-      # end
-
       check_for_winner unless @sandbox || @winner
     end
   end
@@ -70,7 +67,7 @@ class Game
     @latest_render_duration = time do
       @presenter.prerender
       @presenter.render
-      @power_sources.each(&:render)
+      @power_sources.each(&:present)
       @players.each(&:render)
     end
   end
@@ -166,16 +163,6 @@ protected
           enemy_unit.damage(damage_per_enemy)
         end
       end
-    end
-  end
-
-  def capture_power_sources_and_damage_capturing_vehicles(unit_quadtree)
-    unit_quadtree.collisions(@power_sources).each do |power_source, colliding_units|
-      # What to do here is awkward. The least biased thing to do is randomly pick an enemy colliding unit
-      # and say that won…
-      colliding_units.shuffle!
-      power_source.capture(colliding_units[0].player)
-      colliding_units[0].damage(10)
     end
   end
 end

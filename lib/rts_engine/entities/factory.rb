@@ -17,8 +17,15 @@ class Factory < Structure
     initialize_orderable(FACTORY_ORDER_CALLBACKS)
   end
 
-  def produce(*)
-    super if built?
+  def produce(unit_class, cancel_in_progress: false, **kargs)
+    if @unit
+      return unless cancel_in_progress
+
+      @unit.kill
+      @unit = nil
+    end
+
+    start_constructing(unit_class, @position, **kargs) if built?
   end
 
   def kill

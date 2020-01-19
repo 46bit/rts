@@ -3,6 +3,7 @@ require_relative "./shapes/shapes"
 require_relative "./presenters/game"
 require_relative "./presenters/player"
 require_relative "./presenters/power_source"
+require_relative "./presenters/generator"
 require_relative "./presenters/factory"
 require_relative "./presenters/turret"
 require_relative "./presenters/commander"
@@ -30,6 +31,8 @@ class Renderer
       PlayerPresenter.new(self, entity)
     when PowerSource
       PowerSourcePresenter.new(self, entity)
+    when Generator
+      GeneratorPresenter.new(self, entity)
     when Factory
       FactoryPresenter.new(self, entity)
     when Turret

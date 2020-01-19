@@ -3,6 +3,7 @@ require_relative "../capabilities/engineerable"
 
 DEFAULT_ENGINEER_ORDER_CALLBACKS = DEFAULT_VEHICLE_ORDER_CALLBACKS.merge(
   RemoteBuildOrder => lambda { |o| remote_build(o) },
+  ConstructOrder => lambda { |o| construct(o) },
 )
 
 # FIXME: I think this should be an extension of the `Engineer` capability, not a class.
@@ -30,27 +31,40 @@ class Engineer < Vehicle
 protected
 
   def remote_build(remote_build_order)
-    return nil if remote_build_order.unit && (remote_build_order.unit.built? || remote_build_order.unit.dead?)
-
-    if producing? && @unit.position == remote_build_order.build_position && @unit.is_a?(remote_build_order.unit_class)
-      if within_production_range?(remote_build_order.build_position)
-        patrol_location PatrolLocationOrder.new(remote_build_order.build_position, @production_range)
-      else
-        @unit = nil
-        manoeuvre ManoeuvreOrder.new(remote_build_order.build_position)
-      end
-    elsif within_production_range?(remote_build_order.build_position)
-      unit_class = remote_build_order.unit_class
-      if !unit_class.respond_to?(:buildable_by_mobile_units?) || !unit_class.buildable_by_mobile_units?
-        raise "told to construct '#{remote_build_order}' but it is not buildable by module units"
+    # FIXME: Stop going to the location if construction started then stopped. The only sensible thing
+    # is to record unstarted constructions, I just don't know how to neatly avoid rendering them yet.
+    if within_production_range?(remote_build_order.build_position)
+      if remote_build_order.build_at.class != Vector
+        if remote_build_order.build_at.occupied? && !remote_build_order.build_at.owner?(@player)
+          return nil
+        end
       end
 
-      produce(remote_build_order.unit_class, position: remote_build_order.build_position)
-      remote_build_order.unit = @unit
-      patrol_location PatrolLocationOrder.new(remote_build_order.build_position, @production_range)
-    else
-      return nil
+      # FIXME: These APIs need more thought
+      unless start_constructing(remote_build_order.unit_class, remote_build_order.build_at)
+        raise "unable to start constructing: #{remote_build_order}"
+      end
+
+      stop StopOrder.new
+      return ConstructOrder.new(@unit)
     end
+
+    manoeuvre ManoeuvreOrder.new(remote_build_order.build_position)
     remote_build_order
+  end
+
+  def construct(construct_order)
+    return nil if construct_order.unit.built? || construct_order.unit.dead?
+
+    if construct_order.unit != @unit
+      @unit = construct_order.unit
+    end
+
+    if within_production_range?(construct_order.unit.position)
+      stop StopOrder.new
+    else
+      manoeuvre ManoeuvreOrder.new(construct_order.unit.position)
+    end
+    construct_order
   end
 end

@@ -7,24 +7,26 @@ module Engineerable
     @energy_provided = 0
   end
 
-  def produce(unit_class, position: @position, **kargs)
+  def start_constructing(unit_class, build_at, **kargs)
+    position = build_at.class == Vector ? build_at : build_at.position
     # FIXME: Do override what's in production
-    return unless @unit.nil?
-    return false unless within_production_range?(position)
+    return true unless @unit.nil?
+    raise "trying to produce something outside of production range" unless within_production_range?(position)
 
-    construction = @player.constructions.select { |u| u.is_a?(unit_class) && u.position == position }[0]
-    if construction
-      @unit = construction
+    existing_construction = @player.constructions.select { |u| u.is_a?(unit_class) && u.position == position }[0]
+    if existing_construction
+      @unit = existing_construction
     else
       @unit = unit_class.new(
         @renderer,
-        position,
+        build_at,
         @player,
         built: false,
         **kargs,
       )
       @player.constructions << @unit
     end
+    true
   end
 
   def producing?
@@ -55,12 +57,13 @@ module Engineerable
       return
     end
 
-    @unit.repair(@energy_provided * @unit.health_per_unit_cost)
+    # FIXME: Stop using energy if nothing is built
+    if within_production_range?(@unit.position)
+      @unit.repair(@energy_provided * @unit.health_per_unit_cost)
+    end
+
     if @unit.built?
       @unit = nil
     end
-
-    # FIXME: Reimplement excess_build_capacity when I start using it
-    # excess_build_capacity = [@unit_investment - UNIT_CONSTRUCTION_COST, 0].max
   end
 end

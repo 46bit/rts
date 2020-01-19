@@ -42,7 +42,7 @@ class BotPresenter < EngineerPresenter
 
   def derender
     super
-    @circle.remove if @circle
-    @line.remove if @line
+    @circle&.remove
+    @line&.remove
   end
 end
