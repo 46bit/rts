@@ -5,12 +5,12 @@ require_relative "./entities/commander"
 class Player
   def self.from_config(player_config, unit_cap, renderer, power_sources)
     # FIXME: power sources shouldn't be passed here. rethink the AI structure.
-    ai = ai_from_string(player_config["control"], renderer.world_size, power_sources)
-    raise "no AI found for player configured to use '#{player_config['control']}'" unless ai
+    #ai = ai_from_string(player_config["control"], renderer.world_size, power_sources)
+    #raise "no AI found for player configured to use '#{player_config['control']}'" unless ai
 
     Player.new(
       player_config["color"],
-      ai,
+      nil,
       renderer,
       Vector[
         player_config["x"],
@@ -47,6 +47,18 @@ class Player
     @enemy_units = []
     @latest_update_duration = nil
     @latest_render_duration = nil
+
+    @vehicles += 499.times.map do
+      Bot.new(
+        renderer,
+        Vector[
+          renderer.world_size * rand,
+          renderer.world_size * rand,
+        ],
+        self,
+        built: true,
+      )
+    end
   end
 
   def update(power_sources, other_players, direct_fire_quadtree)
@@ -71,8 +83,12 @@ class Player
       @projectiles.each(&:update)
       remove_dead_units
 
-      @control.update(power_sources, self, other_players, direct_fire_quadtree)
-      remove_dead_units
+      @vehicles.each_with_index do |v, i|
+        v.order = AttackOrder.new(@enemy_units[i % @enemy_units.length])
+      end
+
+      #@control.update(power_sources, self, other_players, direct_fire_quadtree)
+      #remove_dead_units
     end
   end
 
